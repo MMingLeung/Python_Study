@@ -1,0 +1,6 @@
+{
+'username':'aaa',
+'passwd':'bbb',
+'lock':1,
+'count':0
+}

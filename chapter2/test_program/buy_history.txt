@@ -1,0 +1,6 @@
+xiaomi       1999          2
+iphone7       6599          1
+xiaomi       1999          1
+xiaomi       1999          2
+iphone7       6599          1
+yijia       2000          1
