@@ -60,7 +60,7 @@ def register(request):
             form.cleaned_data['password'] = make_password(form.cleaned_data['password'], settings.MakePasswordSalt, 'pbkdf2_sha256')
             new_user_obj = r_models.User.objects.create(**form.cleaned_data)
             c_models.UserInfo.objects.create(nickname=nickname,user_id=new_user_obj.id)
-        return HttpResponse('注册成功')
+            return render(request, 'index.html', {'register_form': form, 'login_form': login_form, 'msg':'注册成功，请登录'})
     else:
         return render(request, 'index.html', {'register_form': form, 'login_form':login_form})
 
@@ -190,20 +190,27 @@ def basic_ginfo(request):
         return render(request, 'backend_basic_ginfo.html')
     elif request.permission_code == 'DETAIL':
         if request.method == 'GET':
+            '''
+            多对多分组：
+            页面上有两个框，左边是根据点击的组名获取的组成员，右边是不在这个组的成员
+            （包括：1、在没有分组的人not_ingroup2，2、在分组用户表中的但不在该组的人not_ingroup1）
+            '''
             # 先查询该组的成员id,姓名
             id = request.GET.get('nid')
             group_name = c_models.UserToGroup.objects.filter(group_id=id).values('group__title').distinct()
-            print('group_name', group_name)
             in_group = c_models.UserToGroup.objects.filter(group_id=id).values('user_id', 'user__user__username')
 
-            # 查询不在该组的成员id,姓名
-            not_ingroup1 = c_models.UserToGroup.objects.exclude(group_id=id).values('user_id', 'user__user__username')
-
+            #1、查询出在这个组的人
+            ingp1 = c_models.UserToGroup.objects.filter(group_id=id).values('user_id', 'user__user__username').distinct()
+            print('ingp1', ingp1)
+            #2、查出组表所有人，找出不在这组的人
+            ingp11 = c_models.UserToGroup.objects.all().values('user_id', 'user__user__username').distinct()
+            not_ingroup1 = ingp11.difference(ingp1).distinct()
 
             # 不在UserToGroup的人
             not_ingroup2 = c_models.UserInfo.objects.extra(
                 where=['app_cms_userinfo.id not in (select user_id from app_cms_usertogroup)']
-            ).values('user_id', 'user__username')
+            ).values('user_id', 'user__username').distinct()
             print('not_ingroup2', not_ingroup2)
             return render(request, 'backend_basic_ginfo_detail.html', {'in_group':in_group,
                                                                        'not_ingroup1':not_ingroup1,
@@ -224,7 +231,7 @@ def basic_ginfo(request):
         #情况1：在无分组选择一个人往添加到左边分组
 
 
-        u2g_id_list = c_models.UserToGroup.objects.all()
+        u2g_id_list = c_models.UserToGroup.objects.all().distinct()
         old_u2g = []
 
 
@@ -234,9 +241,9 @@ def basic_ginfo(request):
 
         if sel:
             #交集，在UserToGroup表中的需要改到这一组
-            update_list = set(sel).intersection(old_u2g)
+            # update_list = set(sel).intersection(old_u2g)
             #差集，不在UserToGroup表中的需要创建
-            create_list = set(sel).difference(old_u2g)
+            create_list = set(sel)
         else:
             update_list=[]
             create_list=[]
@@ -248,9 +255,9 @@ def basic_ginfo(request):
             delete_list = set(sel2).difference(sel)
         else:
             delete_list = []
-        if update_list:
-            c_models.UserToGroup.objects.filter(user__user_id__in=update_list).update(group_id=group_id)
-        elif create_list:
+        # if update_list:
+        #     c_models.UserToGroup.objects.filter(user__user_id__in=update_list).update(group_id=group_id)
+        if create_list:
             for i in create_list:
                 c_models.UserToGroup.objects.create(user_id=i, group_id=group_id)
         elif delete_list:
