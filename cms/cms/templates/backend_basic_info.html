@@ -1,0 +1,23 @@
+{% extends 'layout2.html' %}
+
+{% block content %}
+<div style="width: 700px; margin: 0 auto;margin-top: 50px">
+
+
+
+{% include 'motai_add.html' %}
+{% include 'html-search.html' %}
+{% include 'html-tpl.html' %}
+
+
+</div>
+{% endblock %}
+
+{% block js %}
+    <script src="/static/plugins/carhartl-jquery-cookie-92b7715/jquery.cookie.js"></script>
+    <script>
+    var token = $.cookie('csrftoken');
+    $.xx('/backend/basic_info_json.html');
+    </script>
+{% endblock %}
+

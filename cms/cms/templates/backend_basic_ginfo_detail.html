@@ -1,0 +1,118 @@
+{% extends 'layout2.html' %}
+
+{% block css %}
+    <style>
+        #left {
+            width: 200px;
+            height: 130px;
+            background-color: #a2768f;
+            font-size: 20px;
+        }
+
+        #right {
+            width: 200px;
+            height: 130px;
+            background-color: #a2768f;
+            font-size: 20px;
+        }
+
+        span {
+            display: inline-block;
+            background-color: #e0e0e0;
+            text-align: center;
+            margin-top: 25px;
+            width: 100px;
+            height: 130px;
+            line-height: 38px;
+            vertical-align: top;
+            /*基线对齐*/
+        }
+
+        select {
+
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+
+
+    <div style="width: 700px; margin: 0 auto;margin-top: 50px">
+        <form action="/backend/basic_ginfo.html?md=edit&nid={{ id }}" method="POST" style="display: inline-block">
+            {% csrf_token %}
+        <div style="display: inline-block">
+            <p>{{ group_name.first.group__title }}</p>
+            <select name="sel" id="left" size="8" multiple="multiple">
+                {% for row in in_group %}
+                    <option value={{ row.user_id }} class="op">{{ row.user__user__username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+        <span >
+    <button class="torb btn btn-danger" > >  </button>
+    <br>
+    <button class="torba btn btn-danger"> >>>  </button>
+    <br>
+    <button class="tolb btn btn-success"> <  </button>
+</span>
+
+          <div style="display: inline-block">
+            <p>无分组</p>
+        <select name="sel2" id="right" size="8" multiple="multiple">
+            {% for row in not_ingroup1 %}
+                <option value={{ row.user_id }} class="op">{{ row.user__user__username }}</option>
+            {% endfor %}
+            {% for row in not_ingroup2 %}
+                <option value={{ row.user_id }} class="op">{{ row.user__username }}</option>
+            {% endfor %}
+        </select>
+          </div>
+
+</form>
+    </div>
+{% endblock %}
+
+
+{% block js %}
+    {#    <script src="/static/carhartl-jquery-cookie-92b7715/jquery.cookie.js"></script>#}
+    {#    <script>#}
+    {#    var token = $.cookie('csrftoken');#}
+    {#    $.xx('/backend/basic_ginfo_json.html');#}
+    {#    </script>#}
+    <script>
+        var torb = document.getElementsByClassName("torb")[0];
+        var torba = document.getElementsByClassName("torba")[0];
+        var tolb = document.getElementsByClassName("tolb")[0];
+        var option_arr_left = document.getElementById("left");
+        var option_arr_right = document.getElementById("right");
+        torb.onclick = function () {
+            for (var i = 0; i < option_arr_left.length; i++) {
+                console.log(i);
+                if (option_arr_left[i].selected) {
+                    option_arr_right.appendChild(option_arr_left[i]);
+                    i--;
+                }
+            }
+        };
+        torba.onclick = function () {
+            for (var i = 0; i < option_arr_left.length; i++) {
+                option_arr_right.appendChild(option_arr_left[i]);
+                i--;
+            }
+        };
+        tolb.onclick = function () {
+            for (var i = 0; i < option_arr_right.length; i++) {
+                if (option_arr_right[i].selected) {
+                    option_arr_left.appendChild(option_arr_right[i]);
+                    i--;
+                }
+            }
+        }
+
+    </script>
+
+{% endblock %}
+

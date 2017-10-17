@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.css">
+    <style>
+        #contentBox {
+            width: 400px;
+            margin: 0 auto;
+            margin-top: 30px;
+        }
+
+        .login, .register {
+            width: 380px;
+            margin: 0 auto;
+            margin-top: 30px;
+        }
+
+        #logo {
+            width: 400px;
+            height: 80px;
+            border: 1px solid black;
+            margin: 0 auto;
+            margin-top: 30px;
+        }
+
+        #logoWord {
+            text-align: center;
+            line-height: 80px;
+            font-size: 60px;
+            color: transparent;
+            -webkit-text-stroke: 1px #000000;
+        }
+    </style>
+</head>
+<body>
+<div id="logo">
+    <p id="logoWord">后台管理系统</p>
+</div>
+
+
+<div id="contentBox">
+
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist" id="myTabs">
+        {% if request.path_info == '/login.html' or request.path_info == '/index.html' %}
+            <li role="presentation" class="active">
+                {% else %}
+            <li role="presentation" class="">
+        {% endif %}
+        <a href="#home" aria-controls="home" role="tab" data-toggle="tab">登录</a>
+        </li>
+        {% if request.path_info == '/register.html' %}
+            <li role="presentation" class="active">
+                {% else %}
+            <li role="presentation" class="">
+        {% endif %}
+        <a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">注册</a></li>
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+        {% if request.path_info == '/login.html' or request.path_info == '/index.html' %}
+            <div role="tabpanel" class="tab-pane fade in active" id="home">
+        {% else %}
+            <div role="tabpanel" class="tab-pane fade" id="home">
+        {% endif %}
+        <div class="login">
+            <form action="/login.html" method="POST" id="f1">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="exampleInputUsername">User name</label>
+                    {{ login_form.username }}
+                    <p>{{ login_form.errors.username.0 }}</p>
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">Password</label>
+                    {{ login_form.password }}
+                    <p>{{ errors }}</p>
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">验证码</label>
+                    {{ login_form.code }}
+                    <p>{{ login_form.errors.code.0 }}</p>
+                </div>
+                <div class="form-group">
+                    <img id='code_img' onclick="changeImg(this);" src="/check_code/" alt=""
+                         style="width: 120px;height: 35px;" title="点击更新">
+                </div>
+                <div class="form-group" style="margin-left: -14px; ">
+                    <div class="col-sm-5" style="margin-top: 15px">
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        </div>
+
+
+        {% if request.path_info == '/register.html' %}
+            <div role="tabpanel" class="tab-pane fade in active" id="profile">
+        {% else %}
+            <div role="tabpanel" class="tab-pane fade" id="profile">
+        {% endif %}
+
+        <div class="register">
+            <form action="/register.html" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>User name</label>
+                    {{ register_form.username }}
+                    <p>{{ register_form.username.errors }}</p>
+                </div>
+                <div class="form-group">
+                    <label>Nick name</label>
+                    {{ register_form.nickname }}
+                    <p>{{ register_form.nickname.errors }}</p>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    {{ register_form.email }}
+                    <p>{{ register_form.email.errors }}</p>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    {{ register_form.password }}
+
+                </div>
+                <div class="form-group">
+                    <label>Confirm password</label>
+                    {{ register_form.password2 }}
+                    <p>{{ register_form.password2.errors }}</p>
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">验证码</label>
+                    {{ register_form.code }}
+                    <p>{{ register_form.code.errors }}</p>
+                </div>
+                <div class="form-group">
+                    <img id='code_img' onclick="changeImg(this);" src="/check_code/" alt=""
+                         style="width: 120px;height: 35px;" title="点击更新">
+                </div>
+                <div class="form-group" style="margin-left: -14px; ">
+                    <div class="col-sm-5" style="margin-top: 15px">
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        </div>
+        </div>
+
+        </div>
+
+</body>
+<script src="/static/jquery-3.2.1.js"></script>
+<script src="/static/plugins/bootstrap-3.3.7-dist/js/bootstrap.js"></script>
+<script>
+
+    $('#myTabs a').click(function (e) {
+        e.preventDefault();
+        $(this).tab('show')
+    });
+    function changeImg(ths) {
+        ths.src = ths.src + '?'
+    }
+
+</script>
+</html>
