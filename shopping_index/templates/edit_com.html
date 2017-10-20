@@ -1,0 +1,151 @@
+{% extends 'layout.html' %}
+
+{% block css %}
+    <style>
+        .i1{
+            position: absolute;
+            height: 100px;
+            width: 100px;
+            top: 0;
+            left: 0;
+            opacity: 0 ;
+        }
+        .s{
+            width: 180px;
+        }
+    </style>
+{% endblock %}
+
+
+{% block layout %}
+
+
+<div style="padding: 5px 8px; width: 700px">
+        <form method="POST" action="/backend/edit/{{ id }}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ form.title.id_for_label }}">ID <span>{{ form.id.errors.0 }}</span></label>
+                {{ form.id }}
+            </div>
+            <div class="form-group s" >
+                <label for="summary">名称 <span>{{ form.name.errors.0 }}</span></label>
+                {{ form.name }}
+            </div>
+            <div class="form-group">
+                <label for="content">简介 <span>{{ form.about.errors.0 }}</span></label>
+                {{ form.about }}
+            </div>
+            <div class="form-group s">
+                <label>价格 <span>{{ form.price.errors.0 }}</span></label>
+                <div>
+                    {{ form.price }}
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label>价格分类 <span>{{ form.p_level_id.errors.0 }}</span></label>
+                <div>
+                    {{ form.p_level_id }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label>图片 <span>{{ form.img.errors.0 }}</span></label>
+
+            <div style="position: relative; height: 100px;width:100px;">
+                 <img id='preImg' src="{{ obj.img }}" style="height: 100px;width: 100px;">
+{#           <img src="/static/img/1.JPG" alt="" style="height: 80px;width: 80px;" id="img_c">#}
+{#       <input id='imgSelect' type="file" name="ava" value="上传头像" style="position: absolute;height: 80px;width: 80px; top: 0;left: 0;opacity: 0 ;"   >#}
+                {{ form.img }}
+            </div>
+            </div>
+            <div class="form-group">
+                <label>类型 <span>{{ form.type_id.errors.0 }}</span></label>
+                <div>
+                    {{ form.type_id }}
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" value="保 存">
+            </div>
+        </form>
+    </div>
+
+
+{% endblock %}
+
+
+{% block js %}
+    <script src="/static/jquery-3.2.1.js"></script>
+    <script src="/static/plugins/carhartl-jquery-cookie-92b7715/jquery.cookie.js"></script>
+    <script>
+    $(function () {
+{#        页面加载完成时执行#}
+        bindAvatar3();
+    });
+
+    function bindAvatar() {
+        //判断浏览器版本
+        if(window.URL.createObjectURL){
+            bindAvatar2();
+        }else if (window.FileReader){
+            bindAvatar3();
+        }else{
+            bindAvatar1();
+        }
+    }
+
+    /*ajax上传*/
+    function bindAvatar1() {
+        $('#imgSelect').change(function () {
+            //获取input上传的文件对象
+            $(this)[0].files[0];
+            console.log($(this)[0].files[0]);
+            //ajax发送到后台，并获取服务器图片路径
+            //把img标签的路径改变就能显示
+            var formData = new FormData();
+            formData.append('img',$(this)[0].files[0]);
+            var token = $.cookie('csrftoken');
+                 $.ajax({
+                url:'/backend/upload/',
+                headers : {'X-CSRFToken':token},
+                type:'POST',
+                data:formData,
+                //告知jquery不要数据处理
+                contentType:false,
+                processData:false,
+                success:function (arg) {
+                    var img = document.getElementById('preImg');
+                    img.src= '/'+arg;
+                }
+        })
+
+        })
+    }
+
+        /*本地浏览器上传预览 对浏览器要求高*/
+        function bindAvatar2() {
+        $('#imgSelect').change(function () {
+                var obj = $(this)[0].files[0];
+                console.log($(this)[0]);
+                var v = window.URL.createObjectURL(obj);
+                $("#preImg").attr('src', v);
+                var img = document.getElementById('preImg');
+                img.onload = function () {
+                    window.URL.revokeObjectURL(v);
+                }
+
+        })
+    }
+        //放到内存再自动释放
+        function bindAvatar3() {
+        $('#imgSelect').change(function () {
+                var obj = $(this)[0].files[0];
+                var reader = new FileReader();
+                reader.onload = function () {
+                    $("#preImg").attr('src', this.result);
+                };
+                reader.readAsDataURL(obj);
+        })
+    }
+</script>
+{% endblock %}

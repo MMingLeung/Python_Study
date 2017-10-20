@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.css">
+    <style>
+        body {
+            padding-top: 50px;
+        }
+        .main-container {
+            padding: 40px 15px;
+        }
+        .p {
+            text-align: center;
+        }
+        .outer{
+            width:590px;
+            height: 340px;
+            border: 1px solid gold;
+            position: relative;
+            margin: 20px auto;
+        }
+        ul{
+            list-style-type: none;
+        }
+        ul.img li{
+            position: absolute;
+            top:0;
+            left:0;
+            display: none;
+        }
+        .left{
+            background-color: #dddddd;
+            width: 30px;
+            height: 40px;
+            text-align: center;
+            line-height: 30px;
+            opacity: 0.6;
+            position: absolute;
+            left: 0;
+            top: 150px;
+        }
+        .right{
+            background-color: #dddddd;
+            width: 30px;
+            height: 40px;
+            text-align: center;
+            line-height: 30px;
+            opacity: 0.6;
+            position: absolute;
+            right: 0;
+            top: 150px;
+        }
+        .icon{
+            position: absolute;
+            bottom: 0;
+            left: 200px;
+            list-style-type: none;
+        }
+        .icon li{
+            display:inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 100%;
+            background-color: #dddddd;
+            line-height: 12px;
+            margin-left: 10px;
+            text-align: center;
+        }
+        .icon .active{
+            background-color: #d58512;
+        }
+        .active1 {
+            background-color: pink;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Project name:官网首页</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="/backend/index">登录</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+
+    </div>
+</nav>
+
+
+<!-- 轮播图 -->
+<div class="outer">
+    <ul class="img">
+        <li class="item" style="display: block">
+            <a href="">
+                <img src="https://img12.360buyimg.com/babel/jfs/t10798/192/1699896236/142094/72f555fc/59e56eebN5c9ff0bb.jpg" class="img-c">
+            </a>
+        </li>
+        <li class="item">
+            <a href="">
+                 <img src="https://img11.360buyimg.com/babel/jfs/t10204/362/1408966853/116185/c9449f8d/59e06698N753ec472.jpg" class="img-c">
+            </a>
+        </li>
+
+    </ul>
+    <ul class="icon">
+        <li class="active"></li>
+        <li></li>
+    </ul>
+        <div class="left btn"> < </div>
+        <div class="right btn"> > </div>
+</div>
+
+
+<!-- 组合搜索 -->
+
+    <!-- 类型 -->
+    <div class="condition row clearfix" style="margin-left: 80px;padding: 8px 0;">
+
+        <div class="col-xs-2" style="text-align: right">
+            {% if kwargs.type_id == 0 %}
+                <a class="btn btn-success" href="/index/choice-0-{{ kwargs.p_level_id }}">全部</a>
+            {% else %}
+                 <a href="/index/choice-0-{{ kwargs.p_level_id }}">全部</a>
+            {% endif %}
+        </div>
+        <div class="col-xs-10">
+            {% for row in type_list %}
+                {% if row.id == kwargs.type_id %}
+                    <a class="btn btn-success" href="/index/choice-{{ row.id }}-{{ kwargs.p_level_id }}" style="margin-left: 30px">{{ row.name }}</a>
+                {% else %}
+                    <a href="/index/choice-{{ row.id }}-{{ kwargs.p_level_id }}" style="margin-left: 30px">{{ row.name }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+        <!-- 价格区间 -->
+    <div class="condition row" style="margin-left: 80px;padding: 8px 0;">
+        <div class="col-xs-2" style="text-align: right">
+            {% if kwargs.p_level_id == 0 %}
+                <a class="btn btn-success" href="/index/choice-{{ kwargs.type_id }}-0">全部</a>
+            {% else %}
+                <a href="/index/choice-{{ kwargs.type_id }}-0">全部</a>
+            {% endif %}
+        </div>
+        <div class="col-xs-10">
+            {% for row in price_list %}
+                {% if row.id == kwargs.p_level_id %}
+                    <a class="btn btn-success" style="margin-left: 30px" href="/index/choice-{{ kwargs.type_id }}-{{ row.id }}">{{ row.title }}</a>
+                {% else %}
+                    <a style="margin-left: 30px" href="/index/choice-{{ kwargs.type_id }}-{{ row.id }}">{{ row.title }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+<div class="container main-container">
+
+    <div role="tabpanel">
+
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="panel-1">
+                <div class="row masonry-container">
+                    {% for row in obj %}
+                    <div class="col-md-4 col-sm-6 item">
+                        <!--thumbnail 缩略图 -->
+                        <div class="thumbnail">
+                            <img src="{{ row.img  }}" alt="">
+                            <div class="caption">
+                                <h3>{{ row.name }}</h3>
+                                <p>{{ row.about }}</p>
+                                <p>￥{{ row.price }}</p>
+                                <p><a href="#" class="btn btn-danger" role="button">买买买！！！</a> <a href="#"
+                                                                 role="button">Button</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div><!--/.item  -->
+
+                    {% endfor %}
+
+
+
+                </div> <!--/.masonry-container  -->
+            </div><!--/.tab-panel -->
+
+
+
+        </div> <!--/.tab-content -->
+
+    </div> <!--/.tab-panel  -->
+
+</div><!-- /.container -->
+
+<p class="p">Matt Leung. Canton <a
+        href="https://github.com/MMingLeung" target="_blank">Github</a>.
+</p>
+</body>
+<script src="/static/jquery-3.2.1.js"></script>
+<script src="/static/plugins/bootstrap-3.3.7-dist/js/bootstrap.js"></script>
+<script type="text/javascript" src="/static/imagesloaded.pkgd.js"></script>
+<script type="text/javascript" src="/static/masonry.pkgd.js"></script>
+<script>
+
+    (function ($) {
+
+        var $container = $('.masonry-container');
+        $container.imagesLoaded(function () {
+            $container.masonry({
+                columnWidth: '.item',
+                itemSelector: '.item'
+            });
+        });
+
+
+    })(jQuery);
+
+    var i = 0;
+    function move_right() {
+        i++;
+        $(".img li").eq(i).fadeIn(500).siblings().fadeOut(500);
+        $(".icon li").eq(i).addClass('active').siblings().removeClass('active');
+        if (i == 2){
+            i = -1;
+        }
+    }
+    function move_left() {
+        i--;
+        $(".img li").eq(i).fadeIn(500).siblings().fadeOut(500);
+        $(".icon li").eq(i).addClass('active').siblings().removeClass('active');
+        if (i == -1){
+            i = 2;
+        }
+    }
+    var sin = setInterval(move_right, 1000);
+
+    //手动
+    $(".left").click(move_left);
+    $(".right").click(move_right);
+
+    $(".outer").hover(function () {
+        clearInterval(sin);
+    }, function () {
+        sin=setInterval(move_right, 1000);
+    });
+
+    $(".icon li").mouseover(function () {
+        var i = $(this).index();
+         $(".img li").eq(i).fadeIn(500).siblings().fadeOut(500);
+        $(".icon li").eq(i).addClass('active').siblings().removeClass('active');
+
+    })
+
+</script>
+</html>
