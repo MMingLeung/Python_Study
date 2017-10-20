@@ -1,0 +1,95 @@
+body{
+            margin: 0;
+        }
+        .left{
+            float: left;
+        }
+        .right{
+            float: right;
+        }
+        .pg-header{
+            height: 48px;
+/*{#            小于1190像素出现左右滚动条#}*/
+            min-width: 1190px;
+            background-color: #66afe9;
+        }
+        .menus{
+            width: 200px;
+            position: absolute;
+/*{#            屏幕占满#}*/
+            left: 0;
+            bottom: 0;
+            top: 48px;
+            border: 1px solid #dddddd;
+            background-color: #8ccdd5;
+        }
+        .content{
+/*{#            background-color: #e7c3c3;#}*/
+            position: absolute;
+            left: 200px;
+            right: 0;
+            bottom: 0;
+            top: 48px;
+            min-width: 990px;
+/*{#            内容溢出出现滚动条#}*/
+            overflow: scroll;
+            z-index: 99;
+        }
+        .logo{
+            color: #ffffff;
+            font-size:20px;
+/*{#            上下居中#}*/
+            line-height: 48px;
+/*{#            左右居中#}*/
+            width: 200px;
+            text-align: center;
+            border-right: 1px solid #dddddd;
+        }
+        .rmenus{
+            line-height: 48px;
+        }
+        .rmenus a{
+           display:inline-block;
+            padding: 0 18px;
+            text-decoration-line: none;
+        }
+        .rmenus a:hover{
+            background-color: white;
+        }
+        .pg-header .avatar{
+            line-height: 48px;
+            padding: 0 30px;
+            position: relative;
+        }
+        .pg-header .avatar img{
+            border-radius: 50%;
+        }
+        .pg-header .avatar .user-info{
+            display: none;
+            position: absolute;
+            width: 200px;
+            top: 48px;
+            right: 0px;
+/*{#            background-color: yellow;#}*/
+            z-index: 100;
+        }
+        .hide{
+            display:none;
+        }
+/*{#        鼠标放在avatar上，.user-info样式更改#}*/
+        .pg-header .avatar:hover .user-info{
+            display: inline-block;
+        }
+        .pg-header .avatar .user-info a{
+            display: block;
+            padding: 5px 0;
+            border: 1px solid #ffffff;
+            background-color: white;
+        }
+        .pg-body .menus a{
+            display: block;
+            padding: 10px 5px;
+            border-bottom: 2px solid #dddddd ;
+            text-align: center;
+            text-decoration-line: none;
+        }

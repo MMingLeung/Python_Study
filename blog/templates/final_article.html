@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.css">
+    <style>
+        .comment {
+            margin-left: 30px;
+            padding: 10px;
+        }
+
+        #commentArea {
+            margin-left: -30px;
+        }
+
+        .comment_avatar {
+            width: 50px;
+            height: 50px;
+        }
+
+        .comment_a {
+            display: inline-block;
+
+        }
+
+        .comment_user {
+            display: inline-block;
+
+        }
+
+        .comment_time {
+            display: inline-block;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <nav class="navbar navbar-default">
+        {#    container-fluid去掉fluid就不会两端对齐，变成居中#}
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">{{ user_obj.username }}的个人首页</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="/index/">首页</a></li>
+                    <li><a href="#">个人管理</a></li>
+                    <li><a href="/logout/">注销</a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+</div>
+<div class="container">
+    <div class="col-md-4">
+        <div class="personal_info">
+            <div class="panel panel-default">
+                <div class="panel-heading">公告</div>
+                <div class="panel-body">
+                    <ul>
+                        <li>昵称：{{ user_obj.nickname }}</li>
+                        <li>粉丝：0</li>
+                        <li>关注：0</li>
+                        <li>邮箱：{{ user_obj.email }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="tag">
+            <div class="panel panel-default">
+                <div class="panel-heading">标签</div>
+                <div class="panel-body">
+                    <ul>
+                        {% for item in tag_list %}
+                            <li>
+                                {#                    <a href="/用户名/tag/tag_name/"></a>#}
+                                <a href="/{{ user_obj.blog.site }}/{{ item.tags__title }}/">
+                                    {{ item.tags__title }}({{ item.c }})</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="classify">
+            <div class="panel panel-default">
+                <div class="panel-heading">分类</div>
+                <div class="panel-body">
+                    <ul>
+                        {% for item in category_list %}
+                            <li>{{ item.category__title }} ({{ item.c }})</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="classify">
+            <div class="panel panel-default">
+                <div class="panel-heading">时间</div>
+                <div class="panel-body">
+                    <ul>
+                        {% for item in time_sort %}
+                            <li>{{ item.c }} ({{ item.ct }})</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-md-8">
+        <div class="article-list">
+            <div class="article-container">
+                <h4 class="art-header">
+                    <p>{{ article_info.title }}</p>
+                </h4>
+                <div class="art-content clearfix">
+                    <p>{{ article_detail.content | safe }}</p>
+                </div>
+                <div class="art-footer">
+                    <a href="">
+                        <span class="glyphicon glyphicon-user"></span>
+                        {{ article_info.blog.user.username }}
+                    </a>
+                    <div class="create_date" style="display: inline-block;margin-left: 10px">
+                        发布时间：{{ article_info.create_time }}
+                    </div>
+                    <div style="display: inline-block; margin-left: 10px">
+                        <a href="">
+                            <span class="glyphicon glyphicon-envelope"></span>
+                            {{ article_info.comment_count }}
+                        </a>
+                    </div>
+                    <div style="display: inline-block; margin-left: 10px">
+                        {#                        <a href="/up_down/{{ article_info.nid }}/{{ request.session.user_info }}">#}
+                        <a onclick="up_down(this, {{ article_info.nid }}, 1);">
+                            <span class="glyphicon glyphicon-heart" id="up"></span>
+                            <span id="up_count">{{ article_info.up_count }}</span>
+                            <span id="error_msg{{ article.nid }}"></span>
+                        </a>
+
+                    </div>
+                    {#            {{ comment_str | safe }}#}
+                    <h4>评论</h4>
+                    <hr>
+                    <div id="commentArea"></div>
+                    <form action="/{{ site_name }}/p/{{ art_id }}.html" method="POST" id="reply_form">
+                        {% csrf_token %}
+                        <textarea id="t1" name="reply_content" cols="100" rows="5">
+                 </textarea>
+                        <input type="submit" id="comment_sub">
+                    </form>
+                </div>
+
+            </div>
+
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {#              传入对象.方法自动执行#}
+                    {{ page_info.pager|safe }}
+                </ul>
+            </nav>
+        </div>
+
+    </div>
+    <input id='ajaxComent' type="text" style="display: none" value="{{ article_info.nid }}">
+</div>
+{% csrf_token %}
+<script src="/static/jquery-3.2.1.js"></script>
+<script src="/static/carhartl-jquery-cookie-92b7715/jquery.cookie.js"></script>
+<script src="/static/kindeditor/kindeditor-all.js"></script>
+<script>
+    var token = $.cookie('csrftoken');
+
+    /*
+     * 1.调用对象方法，都通过类的prototype的方法，可以进行扩展
+     * 2.可以使用正则表达式： /\w+/g
+     * 3.replace方法，字符串.replace('aaa','bbb')aaa替换bbb
+     *               字符串.replace(/w+/g,'bbb')全部字符串替换bbb
+     *                字符串.replace(/w+/g,function(k, kk){return 11;})全部字符串替换bbb
+     */
+
+    {#自己创造format函数#}
+    {#var a = 'asd';#}
+    {#a.charAt()#}
+    {##}
+    dict = {name: "asd", age: "12"};
+    var v1 = "i am {name}, age is {age}";
+    {#                                k是匹配到的正则, kk是{}里面的值#}
+    {#        /  正则 {}需要转义  /#}
+    v1.replace(/\{（\w+）\}/g, function (k, kk) {
+        {#    返回什么就替换什么#}
+        return dict[kk]
+    });
+
+    String.prototype.Format = function (arg) {
+        console.log(this, arg);
+        {#    this是当前对象,I am {name} , age is {age} #}
+        {#        arg是参数 {name:'a', age:'12'}  需要替换#}
+        {#    return '666'返回值;#}
+        var temp = this.replace(/\{(\w+)\}/g, function (k, kk) {
+            return arg[kk];
+        });
+        return temp;
+    };
+
+
+    $(function () {
+        //发送ajax获取评论信息
+        //通过js生成评论
+
+        console.log($("#ajaxComent").val());
+        $.ajax({
+            url: '/comments-{{ article_info.nid }}.html/',
+            type: "GET",
+            {#        data:{'nid':$("#ajaxComent").val()},#}
+            dataType: 'JSON',
+            headers: {'X-CSRFToken': token},
+            success: function (arg) {
+                {#            var a1 = document.createElement("div").setAttribute("class",'comment');#}
+                {#            $.each(arg, function a(i, j) {#}
+                {#                console.log(j);#}
+                {#                var a2 = document.createElement("div").setAttribute("class",'content');#}
+                {#                $(a2).innerText = j.content;#}
+                {#                console.log($(a2).val());#}
+                {#            })#}
+                if (arg.status) {
+                    console.log(arg.data);
+                    /*
+                     *[{},{},{}]
+                     */
+                    var comment = commentTree(arg.data);
+                    $("#commentArea").append(comment);
+
+                } else {
+                    alert(arg.msg)
+                }
+
+            }
+        })
+    });
+    /*
+     comment_str = "<div class='comment'>"
+     for row in result:
+     tpl = "<div class='content'>%s</div>" % (row['content'])
+     comment_str += tpl
+     if row['child']:
+     #comment_child干什么
+     child_str = comment_tree(row['child'])
+     comment_str += child_str
+     comment_str += "</div>"
+     comment_str += "</div>"
+     return comment_str
+     */
+
+    function commentTree(commentList, s) {
+        var comment_str = "<div class='comment'>";
+        $.each(commentList, function (key, row) {
+            var temp = "<div class='content'><a href='#' class='comment_a' reply_id='{reply_id}'><img src='{img}' class='comment_avatar'></a><div class='comment_user'>{user}</div><div class='comment_time'>{time}</div> <div>{content} <a onclick='reply(this, {{ article_info.nid }})'>回复</a></div></div>".Format({
+                content: row.content,
+                user: row.user__nickname,
+                time: row.create_time,
+                img: row.user__avatar,
+                reply_id: row.nid
+            });
+            comment_str += temp;
+            if (row.child.length) {
+                comment_str += commentTree(row.child)
+            }
+        });
+        comment_str += '</div>';
+        return comment_str
+
+    }
+
+
+    function up_down(ths, nid, val) {
+        $.ajax({
+            url: '/up.html/',
+            data: {'nid': nid, 'val': val},
+            type: 'POST',
+            dataType: 'JSON',
+            headers: {'X-CSRFToken': token},
+            success: function (arg) {
+                if (arg.status) {
+                    //显示赞个数加一
+                    var count_tag = $(ths).children('span')[1];
+                    var i = parseInt($(count_tag).text());
+                    $(count_tag).text(i + 1);
+                } else {
+                    //显示错误信息
+                    var name = "#error_msg" + nid.toString();
+                    $(name).text(arg.msg)
+                }
+            }
+
+        })
+    }
+
+    function reply(ths, article_id) {
+        {#    console.log($(ths).parent().prev().prev());#}
+        var comment_user = $(ths).parent().prev().prev();
+        $("#t1").html("To: " + comment_user.text() + "\n");
+        var reply_id = $(ths).parent().prevAll("a").attr("reply_id");
+        var content = $("#t1").text();
+        console.log(reply_id);
+        var i = document.createElement('input');
+        {#    var j = document.createElement('input');#}
+        i.setAttribute("style", "display:none");
+        {#    j.setAttribute("type", "submit");#}
+        i.setAttribute("name", "reply_id");
+        i.setAttribute("type", "text");
+        i.setAttribute("value", reply_id);
+        $(i).text(reply_id);
+        {#    $("#reply_form").find('input').remove();#}
+        $("#comment_sub").before(i);
+        {#    $("#reply_form").append(j);#}
+        {#    $.ajax({#}
+        {#        url:'/reply.html/',#}
+        {#        data:{'reply_id':reply_id, 'article_id':article_id, 'content':content},#}
+        {#        type:'POST',#}
+        {#        dataType:'JSON',#}
+        {#        headers:{'X-CSRFToken':token},#}
+        {#        success:function (arg) {#}
+        {#            console.log(arg)#}
+        {#        }#}
+        {#    })#}
+    }
+
+
+</script>
+</body>
+</html>

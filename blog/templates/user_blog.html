@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/{{ blog.theme }}.css">
+    <link rel="stylesheet" href="/static/css/commons.css">
+</head>
+<body>
+<div class="header">
+    <nav class="navbar navbar-default">
+{#    container-fluid去掉fluid就不会两端对齐，变成居中#}
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">{{ user_obj.username }}的个人首页</a>
+    </div>
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="/index/">首页</a></li>
+        <li><a href="/back_stage/{{ user_obj.nid }}/manager.html">个人管理</a></li>
+        <li><a href="/logout/">注销</a></li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+</div>
+<div class="container">
+    <div class="col-md-4">
+        <div class="personal_info g1">
+        <div class="panel panel-default g1">
+        <div class="panel-heading g1">公告</div>
+        <div class="panel-body g1">
+         <ul>
+             <li>昵称：{{ user_obj.nickname }}</li>
+             <li>粉丝：
+                 {% for i in fans_count %}
+                 {{ i.c }}
+                 {% endfor %}
+             </li>
+             <li>关注：
+                  {% for i in follow_count %}
+                 {{ i.c }}
+                 {% endfor %}
+
+             </li>
+             <li>邮箱：{{ user_obj.email }}</li>
+         </ul>
+         </div>
+        </div>
+        </div>
+        <div class="tag">
+        <div class="panel panel-default">
+        <div class="panel-heading">标签</div>
+        <div class="panel-body">
+            <ul>
+            {% for item in tag_list %}
+                <li>
+{#                    <a href="/用户名/tag/tag_name/"></a>#}
+                    <a href="/{{ user_obj.blog.site }}/tag/{{ item.tags__nid }}/">
+                    {{ item.tags__title }}({{ item.c }})</a>
+                </li>
+            {% endfor %}
+            </ul>
+         </div>
+        </div>
+        </div>
+        <div class="classify">
+            <div class="panel panel-default">
+            <div class="panel-heading">分类</div>
+             <div class="panel-body">
+                <ul>
+                 {% for item in category_list %}
+                <li>
+                    <a href="/{{ user_obj.blog.site }}/category/{{ item.category_id }}/">
+                    {{ item.category__title }} ({{ item.c }})
+                    </a>
+                </li>
+                     {% endfor %}
+                 </ul>
+                 </div>
+             </div>
+        </div>
+        <div class="classify">
+            <div class="panel panel-default">
+            <div class="panel-heading">时间</div>
+             <div class="panel-body">
+                 <ul>
+                 {% for item in time_sort %}
+                <li>
+                    <a href="/{{ user_obj.blog.site }}/date/{{ item.c }}/">
+                    {{ item.c }} ({{ item.ct }})
+                    </a>
+                </li>
+                     {% endfor %}
+                 </ul>
+                 </div>
+             </div>
+        </div>
+
+    </div>
+    <div class="col-md-8">
+        <div class="article-list">
+         {% for article in article_list %}
+         <div class="article-item">
+                <h4 class="art-header">
+                    <a href="/{{ user_obj.blog.site }}/p/{{ article.nid }}.html">{{ article.title }}</a>
+                </h4>
+{#                clearfix清除浮动#}
+                <div class="art-content clearfix" >
+{#                                                用户头像路径字符串#}
+                    <a href="#" class="left"><img src={{ article.blog.user.avatar }}></a>
+                    <div class="summary">{{ article.summary }}</div>
+                </div>
+                <div class="art-footer">
+                    <a href="">
+                        <span class="glyphicon glyphicon-user"></span>
+                        {{ article.blog.user.username }}
+                    </a>
+                    <div class="create_date" style="display: inline-block;margin-left: 10px">
+                        发布时间：{{ article.create_time }}
+                    </div>
+                    <div style="display: inline-block; margin-left: 10px">
+                        <a href="">
+                            <span class="glyphicon glyphicon-envelope"></span>
+                            {{ article.comment_count }}
+                        </a>
+                    </div>
+                    <div style="display: inline-block; margin-left: 10px">
+                        <a href='#' onclick="up_down(this, {{ article.nid }}, 1);">
+                            <span class="glyphicon glyphicon-heart" id="up"></span>
+                            <span id="up_count">{{ article.up_count }}</span>
+                            <span id="error_msg{{ article.nid }}"></span>
+                        </a>
+                    </div>
+{#                   点赞个数等#}
+                </div>
+            </div>
+         {% endfor %}
+        <nav aria-label="Page navigation">
+          <ul class="pagination">
+{#              传入对象.方法自动执行#}
+              {{ page_info.pager|safe}}
+          </ul>
+        </nav>
+        </div>
+
+    </div>
+</div>
+{% csrf_token %}
+<script src="/static/jquery-3.2.1.js"></script>
+<script src="/static/carhartl-jquery-cookie-92b7715/jquery.cookie.js"></script>
+<script>
+$(function () {
+    //发送ajax获取评论信息
+    //通过js生成评论
+});
+
+var token = $.cookie('csrftoken');
+function up_down(ths, nid, val) {
+    $.ajax({
+        url:'/up.html/',
+        data:{'nid':nid, 'val':val},
+        type:'POST',
+        dataType:'JSON',
+        headers:{'X-CSRFToken':token},
+        success:function (arg) {
+            if(arg.status){
+                //显示赞个数加一
+                var count_tag = $(ths).children('span')[1];
+                var i = parseInt($(count_tag).text());
+                $(count_tag).text(i+1);
+            }else {
+                //显示错误信息
+                var name = "#error_msg"+nid.toString();
+                console.log(name);
+                $(name).text(arg.msg);
+            }
+        }
+
+    })
+}
+</script>

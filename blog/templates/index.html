@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/commons.css">
+</head>
+<body>
+{% csrf_token %}
+<nav class="navbar navbar-default">
+    {#    container-fluid去掉fluid就不会两端对齐，变成居中#}
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">论坛</a>
+        </div>
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+            <!--判断是否选中类型标签，确定是否添加active属性-->
+                {% if type_id %}
+                    <li><a href="/">全部</a></li>
+                {% else %}
+                    <li class="active"><a href="/">全部</a></li>
+                {% endif %}
+            <!--循环type_choice_list生成相应标签，并判断是否添加active属性-->
+                {% for item in type_choice_list %}
+                    {% if item.0 == type_id %}
+                        <li class="active"><a href="/all/{{ item.0 }}/">{{ item.1 }}</a></li>
+                    {% else %}
+                        <li><a href="/all/{{ item.0 }}/">{{ item.1 }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {% if request.session.login_user_info_session_key %}
+                    <li><a href="/{{ request.session.login_user_info_session_key.user_name_session }}/">个人博客</a></li>
+                    <li><a href="/logout/">退出登录</a></li>
+                {% else %}
+                    <li><a href="/login/">登录</a></li>
+                    <li><a href="/register/">注册</a></li>
+                {% endif %}
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
+
+<div>
+    <div class="container">
+        <div class="col-md-8">
+            <div class="article-list">
+                {% for article in article_list %}
+                    <div class="article-item">
+                        <h4 class="art-header">
+                            <a href="/{{ article.blog.site }}/p/{{ article.nid }}.html">{{ article.title }}</a>
+                        </h4>
+                        {#                clearfix清除浮动#}
+                        <div class="art-content clearfix">
+                            {#                                                用户头像路径字符串#}
+                            <a href="#" class="left"><img src={{ article.blog.user.avatar }}></a>
+                            <div class="summary">{{ article.summary }}</div>
+                        </div>
+                        <div class="art-footer">
+                            <a href="/{{ article.blog.user.username }}/">
+                                <span class="glyphicon glyphicon-user"></span>
+                                {{ article.blog.user.username }}
+                            </a>
+                            <div class="create_date" style="display: inline-block;margin-left: 10px">
+                                发布时间：{{ article.create_time }}
+                            </div>
+                            <div style="display: inline-block; margin-left: 10px">
+                                <a href="">
+                                    <span class="glyphicon glyphicon-envelope"></span>
+                                    {{ article.comment_count }}
+                                </a>
+                            </div>
+                            <div style="display: inline-block; margin-left: 10px">
+                                    <!--this：当前标签，nid：文章id，1：指代赞（踩为0）-->
+                                    <a href="#" onclick="up_down(this, {{ article.nid }}, 1);">
+                                        <span class="glyphicon glyphicon-heart" id="up"></span>
+                                        <span id="up_count">{{ article.up_count }}</span>
+                                        <span id="error_msg{{ article.nid }}"></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        {#      传入对象.方法自动执行#}
+                        {{ page_info.pager|safe }}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">热门话题</div>
+                <div class="panel-body">
+                    <p>test</p>
+                    <p>test</p>
+                    <p>test</p>
+                    <p>test</p>
+                    <p>test</p>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">评论最多</div>
+                <div class="panel-body">
+                    <p>test</p>
+                    <p>test</p>
+                    <p>test</p>
+                    <p>test</p>
+                    <p>test</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/jquery-3.2.1.js"></script>
+<script src="/static/carhartl-jquery-cookie-92b7715/jquery.cookie.js"></script>
+<script>
+    //使用jquery插件获取cookie
+    var token = $.cookie('csrftoken');
+    /*
+      *使用ajax实现点赞
+      * 1、绑定点击事件，传入this,文章id,1（此参数为自定义，1代表赞，0代表踩）
+      * 2、后台根据这两个参数以及登录者session中的id值进行数据库查询，
+      *    点赞表字段是联合唯一，如果表中没有记录就进行赞踩，否则返回错误信息。
+      * 3、数据库增加记录后，进行寻找#up_count标签，进行自加操作
+      * 4、否则，显示错误信息
+      */
+    function up_down(ths, nid, val) {
+    $.ajax({
+        url:'/up.html/',
+        data:{'nid':nid, 'val':val},
+        type:'POST',
+        dataType:'JSON',
+        headers:{'X-CSRFToken':token},
+        success:function (arg) {
+            if(arg.status){
+                var count_tag = $(ths).children('span')[1];
+                var i = parseInt($(count_tag).text());
+                $(count_tag).text(i+1);
+            }else {
+                //toString()方法转换为字符串
+                var name = "#error_msg"+nid.toString();
+                $(name).text(arg.msg)
+            }
+        }
+    })
+}
+</script>
+</body>
+</html>

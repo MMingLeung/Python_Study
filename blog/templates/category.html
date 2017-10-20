@@ -1,0 +1,70 @@
+{% extends 'layout.html' %}
+
+{% block css %}
+    <style>
+
+    </style>
+{% endblock %}
+
+{% block layout %}
+<ol class="breadcrumb" style="margin-bottom: 0;">
+    <li><a href="#">分类管理</a></li>
+    <li class="active">分类列表</li>
+</ol>
+<div style="padding: 20px 5px;">
+    <form action="/{{ nid }}/manager/category.html" method="POST" class="form-horizontal container">
+        <div class="col-xs-12">
+            <div class="form-group">
+                <label class="col-xs-2 control-label">分类名称</label>
+                <div class="col-xs-3">
+                    <input type="text" class="form-control" id="nickname" placeholder="请输入分类名称">
+                </div>
+                <div class="col-xs-3">
+                    <input type="submit" class="btn btn-primary" value="添 加">
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+        <div style="height: 35px;background-color: #f5f5f5;line-height: 35px;padding: 0 15px;">
+            <i class="fa fa-table" aria-hidden="true"></i>
+            分类列表
+        </div>
+<table class="table table-bordered">
+<thead>
+    <tr>
+        <td>分类名称</td>
+        <td>文章数量</td>
+        <td>操作</td>
+    </tr>
+</thead>
+<tbody>
+{% for row in categroy_list %}
+  <tr nid="{{ row.nid }}">
+    <td><a href="/{{ nid }}/manager/final_article_management/{{ row.nid }}">{{ row.title }}</a><div class="summary"></div></td>
+    <td>{{ categroy_list_count }}</td>
+    <td>
+        <a class="btn btn-danger btn-xs">
+            <i class="fa fa-times" aria-hidden="true"></i>
+            删除
+        </a>
+        |
+        <a class="btn btn-primary btn-xs" href="/backend/edit-article-{{ row.nid }}.html">
+            <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+            编辑
+        </a>
+    </td>
+  </tr>
+{% endfor %}
+</tbody>
+
+</table>
+
+
+
+
+{% endblock %}
+
+{% block js %}
+
+{% endblock %}

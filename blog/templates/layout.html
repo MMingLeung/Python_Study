@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/plugins/font-awesome-4.7.0/css/font-awesome.css">
+    <link rel="stylesheet" href="/static/css/manager_back.css">
+    {% block css %}{% endblock %}
+</head>
+<body>
+<div class="pg-header">
+    <div class="logo left">程序后台管理</div>
+    <div class="avatar right">
+        <img style="width: 40px;height:40px;"  src="{{ avatar.avatar }}" alt="">
+        <div class="user-info">
+            <a href="">个人资料</a>
+            <a href="">退出</a>
+        </div>
+    </div>
+    <div class="rmenus right">
+        <a href="#" class=""><i class="fa fa-commenting-o" aria-hidden="true"></i>消息</a>
+        <a href="#" class=""><i class="fa fa-cogs" aria-hidden="true"></i>设置</a>
+    </div>
+
+</div>
+<div class="pg-body">
+    <div class="menus">
+        <a href="/back_stage/{{ nid }}/manager/article_management/choice-0-0-0/"><i class="fa fa-address-book" aria-hidden="true"></i>文章管理</a>
+        <a href="/back_stage/{{ nid }}/manager/category.html"><i class="fa fa-graduation-cap" aria-hidden="true"></i>分类管理</a>
+        <a href="/back_stage/{{ nid }}/manager/tag.html"><i class="fa fa-book" aria-hidden="true"></i>标签管理</a>
+        <a href="/back_stage/{{ nid }}/manager/user.html"><i class="fa fa-book" aria-hidden="true"></i>个人信息</a>
+    </div>
+    <div class="content">
+
+    {% block layout %}
+
+    {% endblock %}
+    </div>
+</div>
+{% block js %}{% endblock %}
+</body>
+</html>

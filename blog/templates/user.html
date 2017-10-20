@@ -1,0 +1,157 @@
+{% extends 'layout.html' %}
+
+{% block css %}
+
+{% endblock %}
+
+{% block layout %}
+    <ol class="breadcrumb" style="margin-bottom: 0;">
+        <li><a href="#">个人信息</a></li>
+        <li class="active">个人信息</li>
+    </ol>
+    <div class="row" style="position: relative;">
+        <form class="form-horizontal">
+            <div class="col-xs-12">
+                <div class="form-group">
+                    <label class="col-xs-2 control-label">用户名</label>
+
+                    <div class="col-xs-5">
+                        <p class="form-control-static">AAA</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-2 control-label">邮箱</label>
+
+                    <div class="col-xs-5">
+                        <p class="form-control-static">email@example.com</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="nickname" class="col-xs-2 control-label">昵称</label>
+
+                    <div class="col-xs-5">
+                        <input type="text" class="form-control" id="nickname" placeholder="请输入昵称">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="blogUrl" class="col-xs-2 control-label">博客地址</label>
+
+                    <div class="col-xs-5">
+                        <input type="text" class="form-control" id="blogUrl"
+                               placeholder="http://www.xxx.com/xxxx.html">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-offset-2 col-xs-10">
+                        <button type="submit" class="btn btn-primary">保 存</button>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+        <div style="position: absolute;" class="col-xs-offset-7 col-xs-5">
+            <div class="avatar-container">
+                <img id='preImg' src="/static/img/default_img.jpg" alt="" style="height: 200px;width: 200px;">
+                <input id='imgSelect' type="file" name="ava" value="上传头像"
+                       style="position: absolute;height: 200px;width: 200px; top: 0;left: 0;opacity: 0 ;">
+
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+{% endblock %}
+
+{% block js %}
+<script src="/static/jquery-3.2.1.js"></script>
+<script src="/static/carhartl-jquery-cookie-92b7715/jquery.cookie.js"></script>
+<script>
+    $(function () {
+{#        页面加载先执行#}
+        bindAvatar1();
+{#        bindAvatar2();#}
+{#        bindAvatar3();#}
+{#        bindAvatar();#}
+    });
+
+{#    $('#id_username').focus(function () {#}
+{#        $("#img_c").attr('src','/static/img/2.JPG')#}
+{#    });#}
+{#    $('#id_username').focusout(function () {#}
+{#        $("#img_c").attr('src','/static/img/1.JPG')#}
+{#    });#}
+{#    $('#id_password').focus(function () {#}
+{#        $("#img_c").attr('src','/static/img/3.JPG')#}
+{#    });#}
+{#    $('#id_password').focusout(function () {#}
+{#        $("#img_c").attr('src','/static/img/1.JPG')#}
+{#    });#}
+
+    function bindAvatar() {
+{#        判断浏览器版本，选择函数#}
+        if(window.URL.createObjectURL){
+            bindAvatar2();
+        }else if (window.FileReader){
+            bindAvatar3();
+        }else{
+            bindAvatar1();
+        }
+    }
+    /*ajax上传*/
+    function bindAvatar1() {
+        $('#imgSelect').change(function () {
+{#            获取input上传的文件对象#}
+            $(this)[0].files[0];
+            console.log($(this)[0].files[0]);
+            //ajax发送到后台，并获取服务器图片路径
+            //把img标签的路径改变就能显示
+            var formData = new FormData();
+            formData.append('avatar',$(this)[0].files[0]);
+            var token = $.cookie('csrftoken');
+                 $.ajax({
+                url:'/upload/',
+                headers : {'X-CSRFToken':token},
+                type:'POST',
+                data:formData,
+    {#            告知jquery不要数据处理#}
+                contentType:false,
+                processData:false,
+                success:function (arg) {
+                    var img = document.getElementById('preImg');
+                    img.src= '/'+arg;
+                }
+        })
+
+        })
+    }
+
+        /*本地浏览器上传预览 对浏览器要求高*/
+        function bindAvatar2() {
+        $('#imgSelect').change(function () {
+                var obj = $(this)[0].files[0];
+                var v = window.URL.createObjectURL(obj);
+                $("#preImg").attr('src', v);
+                var img = document.getElementById('code_img');
+                img.onload = function () {
+                    window.URL.revokeObjectURL(v);
+                }
+
+        })
+    }
+        /*放到内存再自动释放*/
+        function bindAvatar3() {
+        $('#imgSelect').change(function () {
+                var obj = $(this)[0].files[0];
+                var reader = new FileReader();
+
+                reader.onload = function () {
+                    $("#preImg").attr('src', this.result);
+                };
+                reader.readAsDataURL(obj);
+        })
+    }
+</script>
+{% endblock %}

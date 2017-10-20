@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.css">
+    <style>
+        .register{
+            width: 500px;
+            margin:0 auto;
+            margin-top: 80px;
+        }
+        .i1{
+            position: absolute;
+            height: 80px;width:
+                80px; top: 0;
+            left: 0;
+            opacity: 0 ;
+        }
+    </style>
+    </head>
+<body>
+<div class="register">
+   <form action="/register/" method="POST" id="f1" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+     <h5>{{ obj.errors.password2.0 }}</h5>
+    <div class="form-group">
+    <label for="exampleInputUsername">User name</label>
+        {{ obj.username }}
+        <p>{{ result.errors.username.0 }}</p>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword1">Password</label>
+    {{ obj.password }}
+      <p>{{ result.errors.password.0 }}</p>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword2">Confirm Password</label>
+    {{ obj.password2 }}
+      <p>{{ result.errors.password.0 }}</p>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputEmail1">Email</label>
+    {{ obj.email  }}
+      <p>{{ result.errors.email.0 }}</p>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputnickname1">nickname</label>
+    {{ obj.nickname }}
+      <p>{{ result.errors.nickname.0 }}</p>
+  </div>
+       <div style="position: relative; height: 80px;width: 80px;">
+       <img id='preImg' src="/static/img/default_img.jpg" alt="" style="height: 80px;width: 80px;">
+{#           <img src="/static/img/1.JPG" alt="" style="height: 80px;width: 80px;" id="img_c">#}
+{#       <input id='imgSelect' type="file" name="ava" value="上传头像" style="position: absolute;height: 80px;width: 80px; top: 0;left: 0;opacity: 0 ;"   >#}
+        {{ obj.avatar }}
+       </div>
+{#  <input type="text" style="display: none;" class="avatar">#}
+  <div class="form-group" style="margin-top: 20px">
+    <label class="col-sm-2 control-label">验证码</label>
+    <div class="col-sm-5">
+        {{ obj.code }}
+        <p>{{ obj.errors.code.0 }}</p>
+    </div>
+    <div class="col-sm-5">
+        <img id='code_img' onclick="change_code(this);" src="/check_code/" alt="" style="width: 120px;height: 35px;" title="点击更新">
+    </div>
+
+  </div>
+       <div class="col-sm-5">
+       <button type="submit" class="btn btn-default">Submit</button>
+       <div>{{ msg }}</div></div>
+</form>
+</div>
+<script src="/static/jquery-3.2.1.js"></script>
+<script src="/static/carhartl-jquery-cookie-92b7715/jquery.cookie.js"></script>
+<script>
+    $(function () {
+{#        页面加载完成时执行#}
+        bindAvatar2();
+    });
+
+    function bindAvatar() {
+        //判断浏览器版本，选择函数
+        if(window.URL.createObjectURL){
+            bindAvatar2();
+        }else if (window.FileReader){
+            bindAvatar3();
+        }else{
+            bindAvatar1();
+        }
+    }
+
+    /*ajax上传*/
+    function bindAvatar1() {
+        $('#imgSelect').change(function () {
+            //获取input上传的文件对象
+            $(this)[0].files[0];
+            console.log($(this)[0].files[0]);
+            //ajax发送到后台，并获取服务器图片路径
+            //把img标签的路径改变就能显示
+            var formData = new FormData();
+            formData.append('avatar',$(this)[0].files[0]);
+            var token = $.cookie('csrftoken');
+                 $.ajax({
+                url:'/upload/',
+                headers : {'X-CSRFToken':token},
+                type:'POST',
+                data:formData,
+                //告知jquery不要数据处理
+                contentType:false,
+                processData:false,
+                success:function (arg) {
+                    var img = document.getElementById('preImg');
+                    img.src= '/'+arg;
+                }
+        })
+
+        })
+    }
+
+        /*本地浏览器上传预览 对浏览器要求高*/
+        function bindAvatar2() {
+        $('#imgSelect').change(function () {
+                var obj = $(this)[0].files[0];
+                console.log($(this)[0]);
+                var v = window.URL.createObjectURL(obj);
+                $("#preImg").attr('src', v);
+                var img = document.getElementById('preImg');
+                img.onload = function () {
+                    window.URL.revokeObjectURL(v);
+                }
+
+        })
+    }
+        //放到内存再自动释放
+        function bindAvatar3() {
+        $('#imgSelect').change(function () {
+                var obj = $(this)[0].files[0];
+                var reader = new FileReader();
+                reader.onload = function () {
+                    $("#preImg").attr('src', this.result);
+                };
+                reader.readAsDataURL(obj);
+        })
+    }
+
+    function change_code(ths){
+        ths.src = ths.src + '?';
+    }
+
+
+</script>
+</body>
+
+</html>

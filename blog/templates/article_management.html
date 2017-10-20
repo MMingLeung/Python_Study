@@ -1,0 +1,146 @@
+{% extends 'layout.html' %}
+
+{% block css %}
+    <style>
+        .condition a {
+            display: inline-block;
+            padding: 5px;
+        }
+
+        .active1 {
+            background-color: pink;
+        }
+
+        .summary {
+            margin-left: 30px;
+            display: inline-block;
+        }
+    </style>
+{% endblock %}
+
+{% block layout %}
+    <ol class="breadcrumb" style="margin-bottom: 0;">
+        <li><a href="#">文章管理</a></li>
+        <li class="active">文章列表</li>
+    </ol>
+    <div style="border: 1px dashed #dddddd;padding: 8px;border-left: 3px solid #337ab7;">
+        <i class="fa fa-search" aria-hidden="true"></i> 搜索条件
+    </div>
+    <div style="padding: 10px">
+
+    <div class="condition row clearfix" style="margin: 0;padding: 8px 0;">
+        <div class="col-xs-1" style="text-align: right">
+            {% if kwargs.article_type_id == 0 %}
+                <a class="active1"
+                   href="/back_stage/{{ nid }}/manager/article_management/choice-0-{{ kwargs.category_id }}-{{ kwargs.tags__nid }}/">全部</a>
+            {% else %}
+                <a href="/back_stage/{{ nid }}/manager/article_management/choice-0-{{ kwargs.category_id }}-{{ kwargs.tags__nid }}/">全部</a>
+            {% endif %}
+        </div>
+        <div class="col-xs-11">
+            {% for row in type_list %}
+                {% if row.0 == kwargs.article_type_id %}
+                    <a href="/back_stage/{{ nid }}/manager/article_management/choice-{{ row.0 }}-{{ kwargs.category_id }}-{{ kwargs.tags__nid }}/"
+                       class="active1">{{ row.1 }}</a>
+                {% else %}
+                    <a href="/back_stage/{{ nid }}/manager/article_management/choice-{{ row.0 }}-{{ kwargs.category_id }}-{{ kwargs.tags__nid }}/">{{ row.1 }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="condition row clearfix" style="margin: 0;padding: 8px 0;">
+        <div class="col-xs-1" style="text-align: right">
+            {% if kwargs.category_id == 0 %}
+                <a class="active1"
+                   href="/back_stage/{{ nid }}/manager/article_management/choice-{{ kwargs.article_type_id }}-0-{{ kwargs.tags__nid }}/">全部</a>
+            {% else %}
+                <a href="/back_stage/{{ nid }}/manager/article_management/choice-{{ kwargs.article_type_id }}-0-{{ kwargs.tags__nid }}/">全部</a>
+            {% endif %}
+        </div>
+        <div class="col-xs-11">
+            {% for row in category_list %}
+                {% if row.nid == kwargs.category_id %}
+                    <a href="/back_stage/{{ nid }}/manager/article_management/choice-{{ kwargs.article_type_id }}-{{ row.nid }}-{{ kwargs.tags__nid }}/"
+                       class="active1">{{ row.title }}</a>
+                {% else %}
+                    <a href="/back_stage/{{ nid }}/manager/article_management/choice-{{ kwargs.article_type_id }}-{{ row.nid }}-{{ kwargs.tags__nid }}/">{{ row.title }}</a>
+                {% endif %}
+            {% endfor %}
+            {#    {% for row in category_list %}#}
+            {#        <a href="/choice-0-{{ row.nid }}-0/">{{ row.title }}</a>#}
+            {#    {% endfor %}#}
+        </div>
+    </div>
+
+    <div class="condition row clearfix" style="margin: 0;padding: 8px 0;">
+        <div class="col-xs-1" style="text-align: right">
+            {% if kwargs.tags__nid == 0 %}
+                <a class="active1"
+                   href="/back_stage/{{ nid }}/manager/article_management/choice-{{ kwargs.article_type_id }}-{{ kwargs.category_id }}-0/">全部</a>
+            {% else %}
+                <a href="/back_stage/{{ nid }}/manager/article_management/choice-{{ kwargs.article_type_id }}-{{ kwargs.category_id }}-0/">全部</a>
+            {% endif %}
+        </div>
+        <div class="col-xs-11">
+            {% for row in tag_list %}
+                {% if row.nid == kwargs.tags__nid %}
+                    <a href="/back_stage/{{ nid }}/manager/article_management/choice-{{ kwargs.article_type_id }}-{{ kwargs.category_id }}-{{ row.nid }}/"
+                       class="active1">{{ row.title }}</a>
+                {% else %}
+                    <a href="/back_stage/{{ nid }}/manager/article_management/choice-{{ kwargs.article_type_id }}-{{ kwargs.category_id }}-{{ row.nid }}/">{{ row.title }}</a>
+                {% endif %}
+            {% endfor %}
+
+        </div>
+    </div>
+
+    <div class="clearfix"
+         style="height: 36px;line-height: 35px;padding: 0 15px;border-top: 1px solid #dddddd;background-color: #f1f0f0">
+        <i class="fa fa-table" aria-hidden="true"></i>
+        搜索文章({{ article_list_count }} 篇)
+        <a href="/back_stage/{{ nid }}/manager/new_article/" class="right"
+           style="display: inline-block;padding:0 10px;background-color: #428bca;color: #ffffff;">
+            <i class="fa fa-plus-circle" aria-hidden="true"></i>
+            创建新文章
+        </a>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>文章标题</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in article_list %}
+            <tr nid="{{ row.nid }}">
+                <td><a href="/back_stage/{{ nid }}/manager/final_article_management/{{ row.nid }}">{{ row.title }}</a>
+                    <div class="summary">简介：{{ row.summary }}</div>
+                </td>
+                <td>
+                    <a class="btn btn-danger btn-xs" href="/back_stage/{{ row.nid }}/delete_article">
+                        <i class="fa fa-times" aria-hidden="true"></i>
+                        删除
+                    </a>
+                    |
+                    <a class="btn btn-primary btn-xs" href="/back_stage/{{ row.nid }}/edit_article.html">
+                        <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                        编辑
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {#<div>{{ row.summary }}</div>#}
+
+
+
+{% endblock %}
+
+{% block js %}
+
+{% endblock %}

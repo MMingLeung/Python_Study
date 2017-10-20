@@ -1,0 +1,44 @@
+{% load xx %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .menu-body {
+            margin-left: 20px;
+        }
+        .menu-body a{
+            display: block;
+        }
+        .menu-body a.active{
+            color: red;
+        }
+        .hide{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+{#{{ menu_str | safe }}#}
+
+
+{#template_tags实现#}
+{#{{ all_menu|create_menu_tree:permission_list |safe }}#}
+{% create_menu_tree all_menu permission_list %}
+
+<script src="/static/jquery-3.2.1.js"></script>
+<script>
+
+    $(function(){
+        $('.menu-header').click(function () {
+            $(this).next().removeClass('hide').parent().siblings().find(".menu-body").addClass('hide')
+        })
+
+
+    })
+</script>
+</body>
+
+</html>
