@@ -74,10 +74,6 @@ class HostGroup(models.Model):
         return self.name
 
 
-class AuditLog(models.Model):
-    '''
-    审计日志
-    '''
 
 
 class Account(models.Model):
@@ -96,3 +92,25 @@ class Account(models.Model):
     host_user_binds = models.ManyToManyField("BindHostUser", blank=True)
     host_groups = models.ManyToManyField('HostGroup', blank=True)
 
+class AuditLog(models.Model):
+    '''
+    审计日志
+    '''
+    session = models.ForeignKey("SessionLog")
+    cmd = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return "%s-%s" %(self.session, self.cmd)
+
+class SessionLog(models.Model):
+    '''
+    获取该记录id传给会话检测脚本，作为会话日志文件名
+    '''
+    account = models.ForeignKey("Account")
+    host_user_bind = models.ForeignKey("BindHostUser")
+    start_date = models.DateTimeField(auto_now_add=True)
+    end_date = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return "%s-%s" % (self.account, self.host_user_bind)
