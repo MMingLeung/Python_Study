@@ -1,11 +1,5 @@
 #! -*-coding:utf8-*-
 from django.contrib.auth import authenticate
-import subprocess
-import random
-import string
-from audit import models
-from django.conf import settings
-from . import ssh_interactive
 
 class UserShell:
     '''
@@ -64,28 +58,7 @@ class UserShell:
                                 choice2 = int(choice2)
                                 if choice2 >= 0 and choice2 <= len(host_bind_list):
                                     select_host = host_bind_list[choice2]
-                                    # #################### paramiko ####################
-                                    ssh_interactive.ssh_session(select_host, self.user)
-
-
-
-
-
-                                    # #################### SSH ####################
-                                    #  通过修改SSH源码增加-Z + 标识码记录用户操作 #
-                                    # s = string.ascii_lowercase + string.digits
-                                    # random_tag = ''.join(random.sample(s, 5))
-                                    # session_obj = models.SessionLog.objects.create(account=self.user.account, host_user_bind=select_host)
-                                    # print("selected host", select_host)
-                                    # cmd = "sshpass -p %s /usr/local/openssh/bin/ssh %s@%s -p %s -o StrictHostKeyChecking=no -Z %s" % (select_host.host_user.password,select_host.host_user.username ,select_host.host_name.ip_addr, select_host.host_name.port, random_tag)
-                                    # print(cmd)
-                                    # # 检测程序start strace and sleep1 random_tag,session_obj.id, 等待shell启动再获取进程号PID
-                                    # session_tracker_script= "%s %s %s" %(settings.SESSION_TRACKER_SCRIPT, random_tag, session_obj.id)
-                                    # session_tracker_obj = subprocess.Popen(session_tracker_script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                                    # # 切换到shell
-                                    # ssh_channel = subprocess.run(cmd, shell=True)
-                                    # print(session_tracker_obj.stdout.read(),  session_tracker_obj.stderr.read())
-                                    # #################### SSH ####################
+                                    print("selected host", select_host)
                             elif choice2 == 'b':
                                 break
 
