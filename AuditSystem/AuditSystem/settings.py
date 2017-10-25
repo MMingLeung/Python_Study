@@ -25,7 +25,7 @@ SECRET_KEY = '_%8_*7^e*k8q!$6!jktom1@)-q3!7eh-#pl9hy_f3pirak84rs'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.0.150:9000', 'loaclhost', '127.0.0.1', '192.168.0.105']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -120,5 +120,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+SESSION_TRACKER_SCRIPT = os.path.join(BASE_DIR, 'audit/backend/')
 
-SESSION_TRACKER_SCRIPT = os.path.join(BASE_DIR, 'audit/backend/session_tracker.sh')
+# ####################### login_required 装饰器不成功默认返回地址 ##################
+LOGIN_URL = '/login/'
