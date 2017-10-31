@@ -25,7 +25,12 @@ urlpatterns = [
     url(r'^host_list/$', views.host_list, name='host_list'),
     url(r'^api/hostlist/$', views.get_host_list, name='get_host_list'),
     url(r'^api/logintoken/$', views.get_login_token, name='get_login_token'),
+    url(r'^api/task/file_upload/$', views.task_file_upload, name='task_file_upload'),
+    url(r'^api/task/file_download/$', views.task_file_download, name='task_file_download'),
     url(r'^test/$', views.test),
     url(r'multitask/cmd/$', views.multi_task_cmd, name='multi_cmd'),
-    url(r'multitask/cmd/$', views.multi_task, name='multi_task')
+    url(r'multitask/cancel_cmd/$', views.cancel_cmd, name='cancel_cmd'),
+    url(r'multitask/filetransfer/$', views.file_transfer, name='file_transfer'),
+    url(r'multitask/$', views.multi_task, name='multi_task'),
+    url(r'multitask/result$', views.multi_task_result, name='multi_task_result')
 ]

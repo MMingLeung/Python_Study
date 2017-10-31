@@ -127,3 +127,9 @@ SESSION_TRACKER_SCRIPT = os.path.join(BASE_DIR, 'audit/backend/')
 
 # ####################### login_required 装饰器不成功默认返回地址 ##################
 LOGIN_URL = '/login/'
+
+# ####################### 多线程脚本路径 #######################
+MULTI_TASK_DIR = os.path.join(BASE_DIR, 'multitask.py')
+
+FILE_UPLOADS = os.path.join(BASE_DIR, 'uploads')
+FILE_DOWNLOADS = os.path.join(BASE_DIR, 'downloads')

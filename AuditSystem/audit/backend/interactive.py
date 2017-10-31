@@ -47,7 +47,7 @@ def posix_shell(chan, session_obj):
         tty.setraw(sys.stdin.fileno())
         tty.setcbreak(sys.stdin.fileno())
         chan.settimeout(0.0)
-        # 用于拼接命令
+        # cmd用于拼接命令
         cmd = ''
         while True:
             r, w, e = select.select([chan, sys.stdin], [], [])

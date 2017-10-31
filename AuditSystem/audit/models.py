@@ -128,3 +128,44 @@ class Token(models.Model):
     def __str__(self):
         return "%s-%s" % (self.host_user_bind, self.val)
 
+class Task(models.Model):
+    '''
+    任务表
+    1、堡垒机账号account
+    2、每子个任务的情况
+    3、时间
+    4、状态
+    5、命令类型
+    6、命令内容
+    '''
+    account = models.ForeignKey("Account")
+    date = models.DateTimeField(auto_now_add=True)
+    task_type_choices = ((0, 'cmd'), (1, 'file_transfer'))
+    task_type = models.IntegerField(choices=task_type_choices)
+    content = models.TextField("任务内容")
+    timeout = models.IntegerField('任务超时', default=5)
+
+    def __str__(self):
+        return '%s-%s-%s' % (self.id, self.task_type, self.content)
+
+
+class TaskLog(models.Model):
+    '''
+    子任务表
+    1、每台主机的关系host_user_binds
+    2、属于哪个task
+    3、获取结果
+    4、时间
+    '''
+    host_user_bind = models.ForeignKey('BindHostUser')
+    task = models.ForeignKey('Task')
+    result = models.TextField(default='init..')
+    date = models.DateTimeField(auto_now_add=True)
+    status_choices = ((0, 'success'), (1, 'failed'), (2, 'time_out'), (3, 'initializing'))
+    status = models.IntegerField(choices=status_choices)
+
+    class Meta:
+        unique_together = ('task', 'host_user_bind')
+
+    def __str__(self):
+        return '%s-%s' % (self.id, self.host_user_bind)

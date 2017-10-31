@@ -20,7 +20,7 @@
 
     <link href="/static/css/animate.css" rel="stylesheet">
     <link href="/static/css/style.css" rel="stylesheet">
-
+    {% block css %}{% endblock %}
 </head>
 
 <body class="skin-1">
@@ -60,14 +60,8 @@
                     <li>
                         <a href="#"><i class="fa fa-bar-chart-o"></i> <span class="nav-label">主机管理</span><span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level collapse">
-                            <li><a href="graph_flot.html">Flot Charts</a></li>
-                            <li><a href="graph_morris.html">Morris.js Charts</a></li>
-                            <li><a href="graph_rickshaw.html">Rickshaw Charts</a></li>
-                            <li><a href="graph_chartjs.html">Chart.js</a></li>
-                            <li><a href="graph_chartist.html">Chartist</a></li>
-                            <li><a href="c3.html">c3 charts</a></li>
-                            <li><a href="graph_peity.html">Peity Charts</a></li>
-                            <li><a href="graph_sparkline.html">Sparkline Charts</a></li>
+                            <li><a href="/multitask/cmd/">批量执行命令</a></li>
+                            <li><a href="/multitask/filetransfer/">批量分发文件</a></li>
                         </ul>
                     </li>
                 </ul>
