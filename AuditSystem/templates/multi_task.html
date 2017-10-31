@@ -75,7 +75,9 @@
                 <h5>命令</h5>
             </div>
             <div class="ibox-content">
-               11111
+                <textarea name="" id="cmd_text" cols="30" rows="8" class="form-control"></textarea>
+                <button onclick="Posttask('cmd')" class="btn btn-default right">执行</button>
+                <button class="btn btn-danger left">终止</button>
             </div>
         </div>
                     <div>
@@ -110,6 +112,8 @@
         $("#CheckCountSpan").text(CheckCount);
         return CheckCount
     }
+
+
 
     </script>
 {% endblock %}

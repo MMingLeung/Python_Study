@@ -6,6 +6,7 @@ from audit import models
 import random
 import string
 import datetime
+from audit import task_handler
 # Create your views here.
 
 @login_required
@@ -77,7 +78,16 @@ def get_login_token(request):
 
 
 
-@login_required()
+@login_required
 def multi_task_cmd(request):
     return render(request, 'multi_task.html')
+
+
+@login_required
+def multi_task(request):
+
+    task_obj = task_handler.Task(request)
+    if task_obj.is_valid():
+        result = task_obj.run()
+        
 

@@ -26,5 +26,6 @@ urlpatterns = [
     url(r'^api/hostlist/$', views.get_host_list, name='get_host_list'),
     url(r'^api/logintoken/$', views.get_login_token, name='get_login_token'),
     url(r'^test/$', views.test),
-    url(r'multitask/cmd/$', views.multi_task_cmd, name='multi_task')
+    url(r'multitask/cmd/$', views.multi_task_cmd, name='multi_cmd'),
+    url(r'multitask/cmd/$', views.multi_task, name='multi_task')
 ]
