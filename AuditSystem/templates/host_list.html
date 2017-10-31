@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+
+
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-lg-10">
+            <h2>AuditSystem</h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a href="test/index.html">Home</a>
+                </li>
+                <li>
+                    <a href="test/index.html">主机列表</a>
+                </li>
+                <li class="active">
+                    <strong></strong>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block body %}
+    {% csrf_token %}
+    <div class="col-lg-3">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>主机组</h5>
+            </div>
+            <div class="ibox-content">
+                <ul class="list-group" id="ListGroup">
+                    <!-- 获取主机组名和其数量-->
+                    {% for group in request.user.account.host_groups.all %}
+
+                            <li class="list-group-item" onclick="GetHostList({{ group.id }}, this)">
+                                {{ group.name }}
+                                <span class="badge badge-success">{{ group.host_user_binds.count }}</span>
+                            </li>
+
+                    {% endfor %}
+                    <!-- /获取主机组名和其数量-->
+
+                            <li class="list-group-item" onclick="GetHostList(-1, this)">
+                                未分组
+                                <span class="badge badge-success">{{ request.user.account.host_user_binds.count }}</span>
+                            </li>
+
+
+
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>主机列表</h5>
+            </div>
+            <div class="ibox-content" id="table">
+                <table class="table" >
+                    <thead>
+                    <tr>
+                        <th>主机名</th>
+                        <th>IP地址</th>
+                        <th>端口号</th>
+                        <th>用户名</th>
+                        <th>机房</th>
+                        <th>操作</th>
+                        <th>Token</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock body %}
+
+{% block script %}
+    <script>
+    function GetHostList(gid, self){
+        $("#table tbody").empty();
+        $.get("{% url 'get_host_list' %}", {'gid':gid}, function(callback){
+            data = JSON.parse(callback);
+            console.log(data);
+            trs = "";
+            $.each(data, function (index, i) {
+
+                td = "<tr><td>"+ i.host_name__hostname + "</td>" + "<td>"+ i.host_name__ip_addr + "</td>" +"<td>"+ i.host_name__port +"</td>" + "<td>" + i.host_user__username + "</td>" + "<td>"+"</td>"+ "<td>"+"<a onclick='GetToken(this, "+i.id+")'>Token</a> | <a href='https://192.168.0.150:4200'>登录</a></td><td></td></tr>";
+                trs +=td
+            });
+            $("#table tbody").append(trs);
+            }
+
+        )}
+        $("#ListGroup li").click(function(){
+            $(this).addClass('active').siblings().removeClass('active')
+        });
+
+
+    function GetToken(self, bind_host_id) {
+
+        $.post("{% url 'get_login_token' %}",
+            {'bind_host_id':bind_host_id, 'csrfmiddlewaretoken':"{{ csrf_token }}"}, function (callback) {
+               var data = JSON.parse(callback);
+               $(self).parent().next().text(data.token)
+            });//end post
+    }
+    </script>
+
+{% endblock %}

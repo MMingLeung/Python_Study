@@ -15,6 +15,7 @@
 程序包含两部分，第一部分是RBAC权限控制模块，第二部分是后台管理系统。
 
 ### 1.目录结构
+#### 1.1程序目录
 cms 后台管理程序</br>
 ├── app__cms  </br>
 │   ├── data_config  页面显示的数据配置文件 </br>
@@ -58,6 +59,15 @@ cms 后台管理程序</br>
 │   └── plugins </br>
 ├── templates 模板</br>
 └── utils </br>
+
+#### 1.2 URL
+/index.html  登录、注册页面  
+/backend/index.html  后台管理首页  
+/backend/basic\_info.html  员工资料查询及编辑页面  
+/backend/basic\_ginfo.html  员工组查询编辑页面  
+/backend/basic\_ginfo.html?md=detail&nid=X  员工组成员编辑页面
+
+
 
 ### 2.数据库结构
 
