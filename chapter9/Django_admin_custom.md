@@ -232,172 +232,185 @@
 
 	 
 
-	test_v1.site.register(models.Role, SuperMattRole)
-		调用test_v1的SuperMattSite（site是其实例对象）里面的regiter方法，传入类models.Role, SuperMattRole这个自定义的类
-	regiter方法， 根据类名和传入的类分别作为key和value 放入类的变量self._registry中。
-	在django 程序的urls.py写入url关系
-		url(r'^su/', test_v1.site.urls)
-	在页面访问su/这个url就会调用est_v1.site的urls的方法
-		urls 返回的是一个url列表，app_name，name_space的元组
-		url列表：[
-		            url(r'^login/$', self.login, name='login'),
-		        ]
-	除了上述的login url 之外还执行了一个循环
-			     for model_class, supermatt_obj in self._registry.items():
-		            # 获取model_class的app名字和类名
-		            # 目标生成http://127.0.0.1:8000/su/app01/role
-			            app_label = model_class._meta.app_label
-			            model_name = model_class._meta.model_name
-			            ret.append(url(r'^%s/%s/' % (app_label, model_name), include(supermatt_obj.urls)))
+	1、test_v1.site.register(models.Role, SuperMattRole)
+	调用test_v1的SuperMattSite（site是其实例对象）里面的regiter方法，传入类models.Role, SuperMattRole这个自定义的类
+	
+	2、regiter方法， 根据类名和传入的类分别作为key和value 放入类的变量self._registry中。
+	
+	3、在django 程序的urls.py写入url关系
+	
+	url(r'^su/', test_v1.site.urls)
+	
+	在页面访问su/这个url就会调用test_v1.site的urls的方法
+	
+	urls 返回的是一个url列表，app_name，name_space的元组
+	urls列表：[
+	            url(r'^login/$', self.login, name='login'),
+	        ]
+	
+	4、除了上述的login url 之外还执行了一个循环
+	for model_class, supermatt_obj in self._registry.items():
+	# 获取model_class的app名字和类名
+	# 生成http://127.0.0.1:8000/su/app01/role这一类url
+	   	app_label = model_class._meta.app_label
+	    model_name = model_class._meta.model_name
+		ret.append(url(r'^%s/%s/' % (app_label, model_name), include(supermatt_obj.urls)))
+	
+	5、现在 urls 里面是这样：
+	# urls(r'^su/$', ([
+	#             url(r'^login/$', self.login, name='login'),
+	#             url(r'^%s/%s/' % (app_label, model_name), include(supermatt_obj.urls))
+	#                  ]，self.app_name,self.name_sapce),
 		
-		现在 urls 里面是这样：
-		     # urls(r'^su/$', ([
-			    #             url(r'^login/$', self.login, name='login'),
-			    #             url(r'^%s/%s/' % (app_label, model_name), include(supermatt_obj.urls))
-			   #                  ]，self.app_name,self.name_sapce),
-			
-			来看看include生成什么：
-				include(supermatt_obj.urls)  , include 传入supermatt_obj.urls， 这个就是生成_registry的时候，如果自己传入继承BaseSuperMatt的类就使用自己的，默认使用BaseSuperMatt，然后调用urls方法：
-			@property
-		     def urls(self):
-		 	'''
-		 	获取当前app_label、model_name
-		 	拼接url的别名
-			'''
-		         info = self.model_class._meta.app_label, self.model_class._meta.model_name
-		        urlpatterns = [
-		             url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
-		             url(r'^add/$', self.add_view, name='%s_%s_add' % info),
-		             url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
-		             url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),
-		         ]
-		         return urlpatterns
-		 根据生成一个urlpatterns列表，里面是url以及别名
-		
-		然后include最后返回的是(urlconf_module, app_name, namespace)
-		最终urls 是这样：
-		      urls(r'^su/$', ([
-			                 url(r'^login/$', self.login, name='login'),
-			                 url(r'^%s/%s/' % (app_label, model_name), (
-			url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
-		      url(r'^add/$', self.add_view, name='%s_%s_add' % info),
-		      url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
-		       url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),app_name, namespace)
-		]，self.app_name,self.name_sapce ),
-		
-	1. 程序执行下来生成了一堆url，我们就可以访问这些url了
-		比如http://127.0.0.1:8000/su/login/ 就等于说调用self.login函数
-		
-		2. 现在我有一个model名字是role, app名字是app01，我可以访问
-		http://127.0.0.1:8000/su/app01/role/
-		此时程序在路由系统中找到
+	6、来看看include生成什么：
+			include(supermatt_obj.urls)  , include 传入supermatt_obj.urls， 这个就是生成_registry的时候，如果自己传入继承BaseSuperMatt就使用自己的，默认使用BaseSuperMatt，然后调用urls方法：
+		@property
+	     def urls(self):
+	 	'''
+	 	获取当前app_label、model_name
+	 	拼接url的别名
+		'''
+	         info = self.model_class._meta.app_label, self.model_class._meta.model_name
+	        urlpatterns = [
+	             url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
+	             url(r'^add/$', self.add_view, name='%s_%s_add' % info),
+	             url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
+	             url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),
+	         ]
+	         return urlpatterns
+	根据生成一个urlpatterns列表，里面是url以及别名
+	
+	然后include最后返回的是(urlconf_module, app_name, namespace)
+	
+	7、最终urls 是这样：
+	      urls(r'^su/$', ([
+		                 url(r'^login/$', self.login, name='login'),
+		                 url(r'^%s/%s/' % (app_label, model_name), (
 		url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
-		找到了BaseSupermatt类里面的self.changelist_view的函数，我们需要渲染一个页面并且显示数据
-			def changelist_view(self, request):
-		        '''
-		        查看列表
-		        :param request: 
-		        :return: 
-		        ''‘
-		        self.request = request
-		        # 根据当前对象查询数据
-		        result_list = self.model_class.objects.all()
-		        context = {
-		            'result_list':result_list,   # 数据结果一个个queryset对象
-		            'list_display':self.list_display, # 自定义或默认显示的字段名或者是函数
-		            'BaseSupermattObj':self # BaseSupermatt这个对象
-		        }
-		        return render(request, 'change_list.html', context)
-		
-		3. 渲染页面change_list.html
-		页面中我们使用tamplatetags 渲染，调用一个叫func的函数
-		# ==========html==========
-		{% load sumatt_list %}
-		{% func result_list list_display BaseSupermattObj %}
-		
-		# ==========summatt_list.py func函数==========
-		# 1、func函数调用table_body,table_head生成两个对象返回给页面
-		# 2、table_body：如果用户自定义了list_display，像这样
-		# list_display 里面可以是字段名称，或者是函数
-		# 3、 table_head 循环遍历list_display 判断如果是函数就把函数名称首字母改为大写，放入生成器中， 如果不是就直接放入
-		# 4、table_body 传入result_display, list_display, basesupermatt_obj
-		#        1、循环result_display （里面是query_set 对象）
-		#        2、如果不是函数调用getattr(query_set_obj ,  list_display_字典名或者函数)
-		#    3、list_display的值是函数的话，调用该函数func(basesupermatt_obj,  遍历到此处的query_set数据)
-		#            例如：执行下面的func流程
-		#                         通过basesupermatt_obj可以获取反向生成url的参数，以及# query_set对象的fk，构建一个编辑的链接。
-		# 5、 最后返回一个字典{'table_body':table_b, 'table_head':table_h}
-		# 6、 该tamplatetags使用@register.inclusion_tag("md.html") ，调用了md.html模板
-		# 7、md.html模板循环遍历上述的字典显示数据
-		# ==========/app01/sumatt.py========== 
-		# 自定义SuperMattUserInfo类继承BaseSupermatt
-		class SuperMattUserInfo(test_v1.BaseSupermatt):
-		
-		    def func(self, obj):
-		        'obj是当前的model对象'
-		
-		        # ===========反向生成url
-		        # 反向生成需要获取app_label，app_model_name，namespace
-		        # name = namespace:label_model_name
-		
-		        # 方法1
-		        # print(self.model_class._meta.app_label, self.model_class._meta.model_name)
-		        # print(self.site.name_sapce)
-		
-		        # 方法2
-		        # from supermatt.service import test_v1
-		        # print(test_v1.site.name_sapce)
-		        # print(type(obj)._meta.app_label)
-		        # pk = primary_key
-		
-		        # ===================
-		
-		        name = '{0}:{1}_{2}_change'.format(self.site.name_sapce, self.model_class._meta.app_label, self.model_class._meta.model_name)
-		        # change需要传一个id号
-		        url = reverse(name, args=(obj.pk,))
-		        print(url)
-		
-		        return mark_safe('<a href="{0}">编辑</a>'.format(url))
-		
-		    def checkbox(self, obj):
-		        tag = "<input type='checkbox' value='{0}'>".format(obj.pk)
-		        return mark_safe(tag)
-		
-		    # list_display = "__all__"
-		    list_display = [checkbox, 'id', 'username', 'email', func]
-		# ==========/app01/sumatt.py========== end 
-		#
-		
-		from django.template import Library
-		from types import FunctionType
-		register = Library()
-		
-		def table_head(list_display):
-		    for item in list_display:
-		        # item 是自定义的list
-		        # BaseSupermattObj.model_class
-		        if isinstance(item, FunctionType):
-		            print(item.__name__.title())
-		        else:
-		            print(item)
-		    for row in list_display:
-		        yield [row.__name__.title() if isinstance(row, FunctionType) else row]
-		
-		def table_body(result_display, list_display, basesupermatt_obj):
-		    '''
-		    生成器，每循环一遍才获取一次值
-		    :param result_display: 
-		    :param list_display: 
-		    :return: 
-		    '''
-		
-		    for row in result_display:
-		        '''
-		        循环list_display，里面有字符串和函数
-		        '''
-		        yield [ name(basesupermatt_obj, row) if isinstance(name, FunctionType) else getattr(row, name) for name in list_display]
-		
-		
+	      url(r'^add/$', self.add_view, name='%s_%s_add' % info),
+	      url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
+	       url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),app_name, namespace)
+	]，self.app_name,self.name_sapce ),
+	
+	8、 程序执行下来生成了一堆url，我们就可以访问这些url了
+	
+	比如http://127.0.0.1:8000/su/login/ 就等于说调用self.login函数
+	
+	9、现在我有一个model名字是role, app名字是app01，我可以访问
+	
+	http://127.0.0.1:8000/su/app01/role/
+	
+	此时程序在路由系统中找到
+	url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
+	
+	找到了BaseSupermatt类里面的self.changelist_view的函数，我们需要渲染一个页面并且显示数据
+		def changelist_view(self, request):
+	        '''
+	        查看列表
+	        :param request: 
+	        :return: 
+	        ''‘
+	        self.request = request
+	        # 根据当前对象查询数据
+	        result_list = self.model_class.objects.all()
+	        context = {
+	            'result_list':result_list,   # 数据结果一个个queryset对象
+	            'list_display':self.list_display, # 自定义或默认显示的字段名或者是函数
+	            'BaseSupermattObj':self # BaseSupermatt这个对象
+	        }
+	        return render(request, 'change_list.html', context)
+	
+	10、 渲染页面change_list.html
+	页面中我们使用tamplatetags 渲染，调用一个叫func的函数
+	
+	# ==========html==========
+	
+	{% load sumatt_list %}
+	{% func result_list list_display BaseSupermattObj %}
+	
+	# ==========summatt_list.py func函数==========
+	# 1、func函数调用table_body,table_head生成两个对象返回给页面
+	# 2、table_body：如果用户自定义了list_display，像这样
+	# list_display 里面可以是字段名称，或者是函数
+	# 3、 table_head 循环遍历list_display 判断如果是函数就把函数名称首字母改为大写，放入生成器中， 如果不是就直接放入
+	# 4、table_body 传入result_display, list_display, basesupermatt_obj
+	#        1、循环result_display （里面是query_set 对象）
+	#        2、如果不是函数调用getattr(query_set_obj ,  list_display_字典名或者函数)
+	#    3、list_display的值是函数的话，调用该函数func(basesupermatt_obj,  遍历到此处的query_set数据)
+	#            例如：执行下面的func流程
+	#                         通过basesupermatt_obj可以获取反向生成url的参数，以及# query_set对象的fk，构建一个编辑的链接。
+	# 5、 最后返回一个字典{'table_body':table_b, 'table_head':table_h}
+	# 6、 该tamplatetags使用@register.inclusion_tag("md.html") ，调用了md.html模板
+	# 7、md.html模板循环遍历上述的字典显示数据
+	# ==========/app01/sumatt.py========== 
+	# 自定义SuperMattUserInfo类继承BaseSupermatt
+	class SuperMattUserInfo(test_v1.BaseSupermatt):
+	
+	    def func(self, obj):
+	        'obj是当前的model对象'
+	
+	        # ===========反向生成url
+	        # 反向生成需要获取app_label，app_model_name，namespace
+	        # name = namespace:label_model_name
+	
+	        # 方法1
+	        # print(self.model_class._meta.app_label, self.model_class._meta.model_name)
+	        # print(self.site.name_sapce)
+	
+	        # 方法2
+	        # from supermatt.service import test_v1
+	        # print(test_v1.site.name_sapce)
+	        # print(type(obj)._meta.app_label)
+	        # pk = primary_key
+	
+	        # ===================
+	
+	        name = '{0}:{1}_{2}_change'.format(self.site.name_sapce, self.model_class._meta.app_label, self.model_class._meta.model_name)
+	        # change需要传一个id号
+	        url = reverse(name, args=(obj.pk,))
+	        print(url)
+	
+	        return mark_safe('<a href="{0}">编辑</a>'.format(url))
+	
+	    def checkbox(self, obj):
+	        tag = "<input type='checkbox' value='{0}'>".format(obj.pk)
+	        return mark_safe(tag)
+	
+	    # list_display = "__all__"
+	    list_display = [checkbox, 'id', 'username', 'email', func]
+	# ==========/app01/sumatt.py========== end 
+	#
+	
+	from django.template import Library
+	from types import FunctionType
+	register = Library()
+	
+	def table_head(list_display):
+	    for item in list_display:
+	        # item 是自定义的list
+	        # BaseSupermattObj.model_class
+	        if isinstance(item, FunctionType):
+	            print(item.__name__.title())
+	        else:
+	            print(item)
+	    for row in list_display:
+	        yield [row.__name__.title() if isinstance(row, FunctionType) else row]
+	
+	def table_body(result_display, list_display, basesupermatt_obj):
+	    '''
+	    生成器，每循环一遍才获取一次值
+	    :param result_display: 
+	    :param list_display: 
+	    :return: 
+	    '''
+	
+	    for row in result_display:
+	        '''
+	        循环list_display，里面有字符串和函数
+	        '''
+	        yield [ name(basesupermatt_obj, row) if isinstance(name, FunctionType) else getattr(row, name) for name in list_display]
+	
+	
 	
 	# 导入一个模板,可使用模板语言传值
 	@register.inclusion_tag("md.html")
@@ -580,6 +593,7 @@
 1. 找到add\_view 函数
 2. 创建一个add\_list.py 使用templatetags的register.inclusion\_tag
 渲染（add\_list.py  生成数据 —\> html模板渲染）add\_view 函数传入model\_form\_obj 和self.model\_class。
+
 	model_form_obj:<class 'django.forms.widgets.MyModelForm'> 
 	1、循环model_form_obj得到<class 'django.forms.boundfield.BoundField'> 
 	2、导入from django.forms.boundfield import BoundField
