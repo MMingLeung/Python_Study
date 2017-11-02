@@ -1,0 +1,17 @@
+{% load sumatt_add_list %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加数据</title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.3.7-dist/css/bootstrap.css">
+</head>
+<body>
+<form method="POST" novalidate>
+    {% csrf_token %}
+
+    {% add_list form model_class %}
+</form>
+<script src="/static/plugins/bootstrap-3.3.7-dist/js/bootstrap.js"></script>
+</body>
+</html>

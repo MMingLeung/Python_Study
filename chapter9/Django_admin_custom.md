@@ -6,6 +6,7 @@
 
 ## 二、注册到Django settings.py
 注释掉django自带的admin和auth以及message，加入自定义app supermatt
+
 	INSTALLED_APPS = [
 	    # 'django.contrib.admin',
 	    # 'django.contrib.auth',
@@ -19,6 +20,7 @@
 	]
 
 把下面不需要的注释让程序更加干净
+
 	TEMPLATES = [
 	    {
 	        'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -89,6 +91,7 @@
 
 
 ## 五、在自定义插件supermatt中创建程序
+
 该程序用于循环获取其它app注册的model，对其生成对应url已经html页面，已经对应增删改查的方法
 
 	# /supermatt/service/test_vi.py
@@ -214,6 +217,7 @@
 ## 五、在app01创建smatt.py（相当于自带的admin.py）
 
 注册到自定义的插件中
+
 	class SuperMattRole(test_v1.BaseSupermatt):
 	    list_display = ['id', 'title']
 	
@@ -222,11 +226,11 @@
 
 ## 六、程序调用过程
 
-model注册 — \> \_registry字典添加数据  — \>在主程序urls写入路由关系 —\> 生成根据SuperMattSite 默认定义的url（如login）和app注册的models生成的路由对应关系 
+1. model注册 — \> \_registry字典添加数据  — \>在主程序urls写入路由关系 —\> 生成根据SuperMattSite 默认定义的url（如login）和app注册的models生成的路由对应关系 
 
-访问url —\> 根据result \_display(数据库查询到结果query\_set), list\_display(默认或者用户自定制的数据库需要显示字段名称) 根据 list\_display 是字符串或者函数， 函数直接调用把结果放到生成器里面 —\> 前面页面获取数据显示
+2. 访问url —\> 根据result \_display(数据库查询到结果query\_set), list\_display(默认或者用户自定制的数据库需要显示字段名称) 根据 list\_display 是字符串或者函数， 函数直接调用把结果放到生成器里面 —\> 前面页面获取数据显示
 
- 
+	 
 
 	test_v1.site.register(models.Role, SuperMattRole)
 		调用test_v1的SuperMattSite（site是其实例对象）里面的regiter方法，传入类models.Role, SuperMattRole这个自定义的类
@@ -251,36 +255,36 @@ model注册 — \> \_registry字典添加数据  — \>在主程序urls写入路
 			    #             url(r'^login/$', self.login, name='login'),
 			    #             url(r'^%s/%s/' % (app_label, model_name), include(supermatt_obj.urls))
 			   #                  ]，self.app_name,self.name_sapce),
+			
+			来看看include生成什么：
+				include(supermatt_obj.urls)  , include 传入supermatt_obj.urls， 这个就是生成_registry的时候，如果自己传入继承BaseSuperMatt的类就使用自己的，默认使用BaseSuperMatt，然后调用urls方法：
+			@property
+		     def urls(self):
+		 	'''
+		 	获取当前app_label、model_name
+		 	拼接url的别名
+			'''
+		         info = self.model_class._meta.app_label, self.model_class._meta.model_name
+		        urlpatterns = [
+		             url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
+		             url(r'^add/$', self.add_view, name='%s_%s_add' % info),
+		             url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
+		             url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),
+		         ]
+		         return urlpatterns
+		 根据生成一个urlpatterns列表，里面是url以及别名
 		
-		来看看include生成什么：
-			include(supermatt_obj.urls)  , include 传入supermatt_obj.urls， 这个就是生成_registry的时候，如果自己传入继承BaseSuperMatt的类就使用自己的，默认使用BaseSuperMatt，然后调用urls方法：
-		@property
-	''     def urls(self):
-	'' 	'''
-	'' 	获取当前app_label、model_name
-	'' 	拼接url的别名
-	'' 	'''
-	''         info = self.model_class._meta.app_label, self.model_class._meta.model_name
-	''         urlpatterns = [
-	''             url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
-	''             url(r'^add/$', self.add_view, name='%s_%s_add' % info),
-	''             url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
-	''             url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),
-	''         ]
-	''         return urlpatterns
-	 根据生成一个urlpatterns列表，里面是url以及别名
-	
-	然后include最后返回的是(urlconf_module, app_name, namespace)
-	最终urls 是这样：
-	      urls(r'^su/$', ([
-		                 url(r'^login/$', self.login, name='login'),
-		                 url(r'^%s/%s/' % (app_label, model_name), (
-		url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
-	      url(r'^add/$', self.add_view, name='%s_%s_add' % info),
-	      url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
-	       url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),app_name, namespace)
-	]，self.app_name,self.name_sapce ),
-	
+		然后include最后返回的是(urlconf_module, app_name, namespace)
+		最终urls 是这样：
+		      urls(r'^su/$', ([
+			                 url(r'^login/$', self.login, name='login'),
+			                 url(r'^%s/%s/' % (app_label, model_name), (
+			url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
+		      url(r'^add/$', self.add_view, name='%s_%s_add' % info),
+		      url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
+		       url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),app_name, namespace)
+		]，self.app_name,self.name_sapce ),
+		
 	1. 程序执行下来生成了一堆url，我们就可以访问这些url了
 		比如http://127.0.0.1:8000/su/login/ 就等于说调用self.login函数
 		
@@ -432,3 +436,186 @@ model注册 — \> \_registry字典添加数据  — \>在主程序urls写入路
 	    {% endfor %}
 	    </tbody>
 	</table>
+
+## 七、数据列表页面渲染及增删改查
+
+### 1、显示中文表头
+
+我们访问[http://127.0.0.1:8000/su/app01/userinfo/](http://127.0.0.1:8000/su/app01/userinfo/)，程序根据url找到self.changelist\_view这个方法。
+
+#### 需求：现在需要生成中文的表头，以及添加增加按钮，并且该按钮增加完成后返回刚刚查看的页面。
+
+实现：
+
+1. 返回刚刚查看的页面
+	1. 需要获取当前用户url；
+		2. 通过request.GET.urlencode获取请求中的参数；
+		3. 放入一个QueryDict中；
+		4. 反向生成url，reverse(‘name\_space: app\_label\_model\_name ’)
+		5. Redirect 反向生成的url + ？ + request.GET.urlencode
+
+	2. 中文表头
+		1. 现在生成的表头是依靠templatetags的table\_head生成的
+		2. 中文表头的位置，models 里面的verbose\_name属性，以及自定制的is\_header里面
+		3. 通过model\_class.\_meta.get\_field(字段名称)获取其对象，就可以获取verbose\_name属性
+		4. 自定义的函数通过is\_header  =True 返回表头字符串
+
+		def changelist_view(self, request):
+	        '''
+	        查看列表
+	        :param request: 
+	        :return: 
+	        '''
+	        # 以后使用
+	        self.request = request
+	
+	        # 生成页面上的添加按钮的url,拼接点击之前的request.GET请求参数，用于操作完返回刚刚页面
+	        # QueryDict
+	        from django.http.request import QueryDict
+	        param_dict = QueryDict(mutable=True) # 默认元素可以修改
+	        if request.GET:
+	            param_dict['_changlistfilter'] = request.GET.urlencode()
+	        base_add_url = "{2}:{0}_{1}_add".format(self.app_label, self.model_name, self.site.name_sapce)
+	        add_url = reverse(base_add_url) + '?' + param_dict.urlencode()
+	
+	
+	        # 数据有了需要页面
+	        result_list = self.model_class.objects.all()
+	        print(self.list_display)
+	
+	        context = {
+	            'result_list':result_list,
+	            'list_display':self.list_display,
+	            'BaseSupermattObj':self,
+	            'add_url':add_url
+	        }
+	        return render(request, 'change_list.html', context)
+	
+
+### 2、编辑、删除按钮操作完成需要返回
+
+#### 编辑按钮通过table\_body函数，遍历 list\_display ，如果是函数就调用，返回html标签的，所以需要生成html标签时加入反向生成的URL
+
+	# 部分代码
+	param_dict = QueryDict(mutable=True)  # 默认元素可以修改
+	 if self.request.GET:
+		   #  获取用户当前url 
+	            param_dict['_changlistfilter'] = self.request.GET.urlencode()
+	            # edit url
+	            base_edit_url = reverse("{2}:{0}_{1}_change".format(self.app_label, self.model_name, self.site.name_sapce), args=(obj.pk,))
+	            edit_url = base_edit_url + '?' + param_dict.urlencode()
+	            # del url
+	            base_del_url = reverse("{2}:{0}_{1}_delete".format(self.app_label, self.model_name, self.site.name_sapce),args=(obj.pk,))
+	            del_url = base_del_url + '?' + param_dict.urlencode()
+	
+	        return mark_safe('<a href="{0}">编辑</a> | <a href="{1}">删除</a> '.format(edit_url,del_url))
+	
+
+#### 3、编辑功能的实现
+
+1. 点击编辑按钮跳转到[http://127.0.0.1:8000/su/app01/userinfo/5/change/?\_changlistfilter=page%3D1%26id%3D666%26name%3Dawd](http://127.0.0.1:8000/su/app01/userinfo/5/change/?_changlistfilter=page%3D1%26id%3D666%26name%3Dawd)（后面GET请求参数是测试的）
+2. 找到BaseSupermatt.change\_view
+3. 根据pk和model\_class 得到对象
+4. 判断是否存在该对象
+5. 使用Model\_Form ，用调一个函数返回model\_form的类
+6. 实例化并传入instance，使显示的时候默认选中
+7. 提交修改时判断字段是否合法，然后save， redirect 反响生成的url
+
+		def get_add_or_edit_model_form(self):
+	        if self.add_or_edit_model_form:
+	            return self.add_or_edit_model_form
+	        else:
+	            from django.forms import ModelForm
+	            # 对象由类创建，类由type创建
+	            # 通过对象找到提供的字段
+	            # class MyModelForm(ModelForm):
+	            #     class Meta:
+	            #         model = self.model_class
+	            #         fields = '__all__'
+	
+	            _Meta = type('Meta', (object,), {'model':self.model_class, 'fields':'__all__'})
+	            MyModelForm = type('MyModelForm', (ModelForm, ), {"Meta":_Meta})
+	            return MyModelForm
+	
+		def change_view(self, request, pk):
+	
+	        # 1.获取_changlistfilter传递的参数
+	        # request.GET.get("_changlistfilter")
+	
+	        # 2.获取数据默认显示并选中ModelForm
+	        # get_add_or_edit_model_form
+	        obj = self.model_class.objects.filter(pk=pk).first()
+	        if request.method == 'GET':
+	
+	            if not obj:
+	                return HttpResponse('id不存在')
+	            # instance=obj自动选中默认值
+	            model_form_obj = self.get_add_or_edit_model_form()(instance=obj)
+	
+	
+	            # 3.返回页面
+	
+	        else:
+	            # 更新必须传instance
+	            model_form_obj = self.get_add_or_edit_model_form()(data=request.POST, files=request.FILES, instance=obj)
+	            if model_form_obj.is_valid():
+	                model_form_obj.save()
+	                base_list_url = reverse("{2}:{0}_{1}_changelist".format(self.app_label, self.model_name, self.site.name_sapce))
+	                list_url = '{0}?{1}'.format(base_list_url, request.GET.get('_changlistfilter'))
+	                return redirect(list_url)
+	
+	        context = {
+	                'form':model_form_obj
+	            }
+	        return render(request, 'edit.html', context)
+
+#### 4、删除功能
+
+根据pk，查询出model对象调用delete方法，重定向url
+
+### 2、对添加功能的页面改进
+
+#### 原来使用.as\_p快速渲染html，现在需要改进为添加html标签的class属性以便使用bootstrap模板以及显示中文列名和错误信息
+
+1. 找到add\_view 函数
+2. 创建一个add\_list.py 使用templatetags的register.inclusion\_tag
+渲染（add\_list.py  生成数据 —\> html模板渲染）add\_view 函数传入model\_form\_obj 和self.model\_class。
+	model_form_obj:<class 'django.forms.widgets.MyModelForm'> 
+	1、循环model_form_obj得到<class 'django.forms.boundfield.BoundField'> 
+	2、导入from django.forms.boundfield import BoundField
+	3、里面有变量form 对应的html标签, name : 字段名称, field : model的Field
+	
+	self.model_class: <class 'app01.models.UserInfo'>
+	1、model对象有_meta方法获取其有关的属性
+	2、_meta.get_field(字段名) 获取model的一个的对象，相当于username = models.CharField(max_length=64, verbose_name='用户名') 这个username对象，就可以获取verbose_name属性，在页面显示
+	
+	#templatetags的py文件 sumatt_add_list.py
+	from django.template import Library
+	register = Library()
+	
+	def head(model_form_obj, model_class):
+	    for item in model_form_obj:
+	        yield model_class._meta.get_field(item.name).verbose_name,\
+	              item.as_widget(attrs={'class': 'form-control'}),item.errors
+	
+	
+	
+	@register.inclusion_tag('add_md.html')
+	def add_list(model_form_obj, model_class)：
+	    '''
+	    返回数据给add_md.html模板
+	    '''
+	    h = head(model_form_obj, model_class)
+	    return {'head': h}
+
+
+3. 创建inclusion\_tag所需要的html模版
+
+	    {% for item in head %}
+	       <p>{% for i in item %}
+	           {{ i }}
+	           {% endfor %}
+	           </p>
+	    {% endfor %}
+	    <input type="submit" value="submit">
+

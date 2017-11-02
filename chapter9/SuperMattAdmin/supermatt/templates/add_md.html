@@ -1,0 +1,9 @@
+{#{{ form.as_p }}#}
+
+    {% for item in head %}
+       <p>{% for i in item %}
+           {{ i }}
+           {% endfor %}
+           </p>
+    {% endfor %}
+    <input type="submit" value="submit">

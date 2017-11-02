@@ -2,11 +2,7 @@
     <thead>
     <tr>
     {% for item in table_head %}
-        <th>
-        {% for row in item %}
-            {{ row }}
-        {% endfor %}
-        </th>
+       <th>{{ item }}</th>
     {% endfor %}
      </tr>
     </thead>
