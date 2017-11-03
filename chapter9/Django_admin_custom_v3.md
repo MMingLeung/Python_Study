@@ -525,7 +525,7 @@ def table_body(result_display, list_display, basesupermatt_obj):
 	        return mark_safe('<a href="{0}">编辑</a> | <a href="{1}">删除</a> '.format(edit_url,del_url))
 
 
-#### 3、编辑功能的实现
+#### 1、编辑功能的实现
 
 1. 点击编辑按钮跳转到[http://127.0.0.1:8000/su/app01/userinfo/5/change/?\_changlistfilter=page%3D1%26id%3D666%26name%3Dawd](http://127.0.0.1:8000/su/app01/userinfo/5/change/?_changlistfilter=page%3D1%26id%3D666%26name%3Dawd)（后面GET请求参数是测试的）
 2. 找到BaseSupermatt.change\_view
@@ -581,7 +581,7 @@ def table_body(result_display, list_display, basesupermatt_obj):
            return render(request, 'edit.html', context)
 
 
-#### 4、删除功能
+#### 2、删除功能
 
 根据pk，查询出model对象调用delete方法，重定向url
 
@@ -595,13 +595,26 @@ def table_body(result_display, list_display, basesupermatt_obj):
   渲染（add\_list.py  生成数据 —\> html模板渲染）add\_view 函数传入model\_form\_obj 和self.model\_class。
 
   model_form_obj:<class 'django.forms.widgets.MyModelForm'> 
+
   1、循环model_form_obj得到<class 'django.forms.boundfield.BoundField'> 
+
   2、导入from django.forms.boundfield import BoundField
+
   3、里面有变量form 对应的html标签, name : 字段名称, field : model的Field
 
+  ​
+
   self.model_class: <class 'app01.models.UserInfo'>
+
   1、model对象有_meta方法获取其有关的属性
-  2、_meta.get_field(字段名) 获取model的一个的对象，相当于username = models.CharField(max_length=64, verbose_name='用户名') 这个username对象，就可以获取verbose_name属性，在页面显示
+
+  2、_meta.get_field(字段名) 获取model的一个的对象，相当于username = 
+
+  models.CharField(max_length=64, verbose_name='用户名') 这个username对象，
+
+  就可以获取verbose_name属性，在页面显示
+
+  ​
 
   ~~~
   # templatetags的py文件 sumatt_add_list.py
@@ -632,3 +645,251 @@ def table_body(result_display, list_display, basesupermatt_obj):
                  </p>
           {% endfor %}
           <input type="submit" value="submit">
+
+### 2.1、对form.as_p的渲染改进
+
+````
+# 直接使用model_form_obj里面的BoundField对象.field.label就可以获取中文标题，也就是verbose_name，
+item.errors.0获取错误信息
+````
+
+
+
+### 3、PopUp 实现增加用户信息时可以动态增加用户组信息
+
+1. 首先要判断是popup增加还是正常访问的增加，此处需要在a标签上加入popup参数,生成标签是在templatetags的函数中实现
+2. 然后在add_view中判断
+
+````python
+# /tamplatetags/sumatt_add_list.py
+from django.template import Library
+from django.forms import ModelChoiceField
+from django.urls import reverse
+register = Library()
+from supermatt.service import test_v1
+
+def head(model_form_obj):
+	'''
+	处理html需要显示的内容
+	'''
+    form_list = []
+    for item in model_form_obj:
+		# 增加一下信息
+		# is_popup：代表是否是popup的方法
+		# item: model_form_obj 里面的对象
+		# popurl：popup函数需要传入的地址
+        row = {'is_popup': False, 'item': None, 'popurl': None}
+		
+		# 判断是否是FK 或者 m2m 对应增加popup增加，且注册在该组件中
+        if isinstance(item.field, ModelChoiceField) and item.field.queryset.model in test_v1.site._registry:
+            # ModelMultipleChoiceField继承ModelChoiceField
+            # QuerySet 有个model对象，代表对应的model的类名
+            # 可以item.field.queryset.model._meta.app_label 等属性用于反向生成URL
+            row['is_popup'] = True
+            row['item'] = item
+            # 反向生成URL
+            target_url = reverse("{0}:{1}_{2}_add".format(test_v1.site.name_space,
+                         item.field.queryset.model._meta.app_label,                                               					       item.field.queryset.model._meta.model_name))
+            # 拼接，item.auto_id：该标签的id值，用于添加完成后增加到里面
+            target_url = "{0}?popup={1}".format(target_url, item.auto_id)
+            row['popurl'] = target_url
+        else:
+            row['item'] = item
+        yield row
+
+````
+
+3. 页面显示
+
+   1. 判断is_popup，为真添加一个a标签，onclick方法调用自己定义的PopUpOpen函数，传入popurl
+
+   2. PopUpOpen 弹出窗户，提交，后台处理
+
+   3. ```
+      # add_view后台部分代码
+      # 如果是以popup提交，获取popid:标签的id，text:增加的对象的文本内容，pk:主键
+      # 渲染到popup_response.html
+      popid = request.GET.get('popup')
+        if popid:
+        return render(request, 'popup_response.html',
+        {'data_dict':{
+        'text':str(obj),
+        'pk':obj.pk,
+        'popid':popid}
+        })
+      ```
+
+   4. ````js
+      // popup_response.html
+      <script>
+        	// 调用opener 也就是弹出popup窗户的主体的popCallBack方法
+          var data_dict = {{ data_dict|safe }}
+          opener.popCallBack(data_dict);
+          window.close()
+      </script>
+      ````
+
+      ​
+
+```js
+<form method="POST" novalidate style="width: 700px; margin: 0 auto;margin-top: 20px;">
+ {% csrf_token %}
+    {% for col in form %}
+        {% if col.is_popup %}
+                <p>{{ col.item.field.label }}{{ col.item }}<a href="#" onclick='PopUpOpen("{{ col.popurl }}")'>添加</a>{{ col.item.errors.0 }}</p>
+            {% else %}
+             <p>{{ col.item.field.label }}{{ col.item }}{{ col.item.errors.0 }}</p>
+        {% endif %}
+    {% endfor %}
+    <input type="submit" value="submit">
+</form>
+
+<script>
+    function popCallBack(data_dict) {
+      	// 获取返回的字典信息
+      	// popid:标签的id
+      	// text:增加的对象的文本内容 
+        // pk:主键
+        console.log(data_dict);
+        var tar = document.createElement('option');
+        tar.innerHTML = data_dict.text;
+        tar.setAttribute('value', data_dict.pk);
+        tar.setAttribute('selected', 'selected');
+        document.getElementById(data_dict.popid).appendChild(tar)
+    }
+    function PopUpOpen(url) {
+        window.open(url, url, 'status=1, height:500, width:600, toolbar=0, resizeable=0')
+    }
+</script>
+```
+
+
+
+### 4、分页
+
+#### 考虑：
+
+​	分页是通过url带上?page=xx 实现的，当用户点击分页的时候可能会有原来url的一些信息，所以分页必须带上
+
+
+
+#### 实现：
+
+1. 通过reverse反向生成url获取原来的url（/su/app01/userinfo/）
+2. 需要拼接原来GET请求的信息，request.GET可以获取一个queryset的字典，通过._mutable = True可以修改里面的值，queryset可能在别的地方调用必须使用深复制一份新的修改。
+3. PageInfo需要传入当前页页数，每页显示页数，数据总条数，原来url，原来GET请求的信息
+4. PageInfo内部拼接
+
+````
+nex = " <li><a href='%s?%s'>下一页</a></li>" % (self.base_url, self.page_param_dict.urlencode())
+// 最后拼接成/su/app01/userinfo/?page=xxx&之前的一些参数&....
+````
+
+
+
+````python
+# PageInfo完整代码
+class PageInfo:
+    '''
+    current_page:当前点击的页码
+    per_page：每页显示的数据数量    
+    all_count：数据总共的数量
+    base_url：网页根地址
+    show_page：页码总共显示的个数
+    page_param_dict: url原参数
+    '''
+    def __init__(self, current_page, per_page, all_count, base_url, page_param_dict,show_page=11):
+        print('allcount', all_count)
+        try:
+            #当前页转换为int
+            self.current_page =int(current_page)
+        except Exception as e :
+            self.current_page = 1
+        self.per_page = per_page
+        self.all_count = all_count
+        self.base_url = base_url
+        self.page_param_dict = page_param_dict
+        #计算总共的页码数
+        #a 是商，b是余数，余数大于1需要增加一页放置
+        a, b = divmod(self.all_count, per_page)
+        if b:
+            a += 1
+            #总页数
+        self.all_page = a
+        self.show_page = show_page
+
+    @property
+    def start(self):
+        #数据开始的序号，比如我点击第一页，数据开始位置是0
+        return (self.current_page-1) * self.per_page
+
+    @property
+    def stop(self):
+        # 数据结束的序号，比如我点击第一页，数据结束位置是10 ， 0-10显示10条
+        return self.current_page * self.per_page
+
+
+    def pager(self):
+        #建立列表存放计算得出的数据序号
+        page_list = []
+        #显示页码的一半 -1 2 3 4 5-6-7 8 9 10 11- 显示11条，左右各5条
+        half = int((self.show_page - 1) / 2)
+        # 11 - 1 / 2 = 5
+
+        print(self.all_count)
+
+        # 如果数据总页数 < 11 , 只显示现有数据的总页数，就是all_page
+        # 开始页数永远等于1 ， 结束页码就是最大页数
+        if self.all_page < self.show_page:
+            start = 1
+            end = self.all_page + 1
+        else:
+            #总页数大于11
+
+            #如果我点击12345永远显示前11页，当前页为1， 结束页等于show_page
+            if self.current_page <= 5:
+                start = 1
+                end = self.show_page + 1
+            else :
+                #如何点击的页码+  后5页 > 总共页数，对极限值做判断， 后面的页码不需要增加
+                if self.current_page + half > self.all_page:
+                    #最后一页往前面数，减去show_page + 1
+                    start = self.all_page - self.show_page + 1
+                    end = self.all_page + 1
+                else:
+                    #当前页往前5页，和往后5页（开始的问题，会出现负数，所以要加判断）
+                    start = self.current_page - half
+                    end = self.current_page + half +1
+
+
+        if self.current_page <= 1:
+            prev = " <li><a href='%s?page=#'>上一页</a></li>" % (self.base_url)
+        else:
+            self.page_param_dict['page'] = self.current_page - 1
+            prev = " <li><a href='%s?%s'>上一页</a></li>" % (self.base_url, self.page_param_dict.urlencode(), )
+
+        page_list.append(prev)
+
+
+        for i in range(start, end):
+            self.page_param_dict['page'] = i
+            if i == self.current_page:
+                temp = " <li class='active'><a href='%s?page=%s'>%s</a></li>" % (self.base_url,i,i,)
+            else:
+               temp = " <li><a href='%s?%s'>%s</a></li>" % (self.base_url, self.page_param_dict.urlencode(),i,)
+            page_list.append(temp)
+
+
+        if self.current_page >= self.all_page:
+            nex = " <li><a href='%s?page=%s'>下一页</a></li>" % (self.base_url, self.current_page)
+        else:
+            nex = " <li><a href='%s?%s'>下一页</a></li>" % (
+            self.base_url, self.page_param_dict.urlencode())
+
+        page_list.append(nex)
+
+        page_list = ''.join(page_list)
+        return page_list
+
+````
+
