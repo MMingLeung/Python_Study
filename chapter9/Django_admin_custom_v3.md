@@ -893,3 +893,363 @@ class PageInfo:
 
 ````
 
+
+
+### 5、Action下拉框的实现
+
+在app01/smatt.py中定义action_list , 存放的是action执行的功能和其显示文本
+
+````
+    def initial(self, request):
+        '''
+        返回True，回到原来页面
+        返回False，回到首页
+        :param request: 
+        :return: 
+        '''
+        pk_list = request.POST.getlist('pk')
+        print(pk_list)
+        models.UserInfo.objects.filter(pk__in=pk_list).update(username='初始化')
+        return True
+    # 赋值text的属性
+    initial.text = "初始化"
+
+    def multi_del(self, request):
+        pass
+
+    multi_del.text = '批量删除'
+    # 必需是函数或者对象
+    action_list = [initial,multi_del]
+````
+
+
+
+````python
+# Supermatt/service/test_v1.py  
+# changelist_view
+
+....
+
+# ########### Action操作 ###########
+        # GET： 显示下拉框
+        # POST：
+        action_list = []
+      	# 循环app01传过来的action_list,把类名作为和文本信息传入
+        for i in self.action_list:
+            # 把函数名字和文本信息放入action_list
+            tpl = {'name':i.__name__, 'text':i.text}
+            action_list.append(tpl)
+        if request.method == "POST":
+            # 1. 获取select 标签 name = action
+            # 2. 通过反射获取函数并且调用传入request
+            func_name_str = request.POST.get('action')
+            ret = getattr(self, func_name_str)(request)
+            action_page_url = reverse("{2}:{0}_{1}_changelist".format(self.app_label, self.model_name, self.site.name_space))
+            if ret:
+            	# 回到当前页
+                action_page_url = "{0}?{1}".format(action_page_url, request.GET.urlencode())
+            return redirect(action_page_url)
+````
+
+
+
+````html
+<!-- 页面显示-->
+	{% if action_list %}
+    <select class="form-control" style="width: 200px;display: inline-block" name="action">
+        {% for item in action_list %}
+            <option value="{{ item.name }}">{{ item.text }}</option>
+        {%  endfor %}
+    </select>
+    <input type="submit" class="btn btn-primary" value="执行" style="display: inline-block">
+    {% endif %}
+````
+
+
+
+### 6、组合搜索
+
+思考：
+
+1.  需要取出数据，在页面上显示
+2. 让用户自定义的，可以传入是函数或者字符串，用于标识显示哪个数据表
+3. 单选多选的设置
+4. 选中后url的变化
+5. 面向对象的思维，类与类的嵌套使用
+
+
+
+功能实现：
+
+1. 定义一个类，用于判断传入的是数据库字段名称还是函数、是否是多选、html显示的文本名字的函数名、html中val显示的名字的函数名。
+
+````python
+class FilterOption(object):
+    def __init__(self, field_or_func, is_multi=False, text_func_name=None, val_func_name=None):
+        '''
+        :param field_or_func: 字段或者函数
+        :param is_multi: 是否支持多选
+        :param text_func_name: 在Model中定义函数，显示文本名称， 默认使用str(obj)
+        :param val_func_name: 在Model中定义函数，显示文本名称，默认使用对象pk
+        '''
+        self.field_or_func = field_or_func
+        self.is_multi = is_multi
+        self.text_func_name = text_func_name
+        self.val_func_name = val_func_name
+
+    @property
+    def is_func(self):
+      	'''
+      	判断是否是函数
+      	'''
+        if isinstance(self.field_or_func, FunctionType):
+            return True
+
+    @property
+    def name(self):
+        if self.is_func:
+            # 返回函数的名字
+            return self.field_or_func.__name__
+        else:
+            # 返回字段文本
+            return self.field_or_func
+````
+
+2. 定义一个函数用于循环遍历model的field字段，生成html标签，放入生成器中给前端渲染
+
+````Python
+class FilterList(object):
+    def __init__(self, option, queryset, request):
+        self.option = option
+        self.queryset = queryset
+        self.param_dict = copy.deepcopy(request.GET)
+        # 当前url
+        self.path_info = request.path_info
+
+    def __iter__(self):
+        # self.paramdict = <QueryDict: {'page': ['2'], 'ewq': ['12']}>
+        # print('__iter__',self.option.name)
+        # print('begin',self.param_dict)
+        yield mark_safe("<div class='all-area'>")
+        # 如果 option.name 在request.GET 里面，就pop出来，生成用于"全部"标签的url
+        #
+        if self.option.name in self.param_dict:
+            pop_val = self.param_dict.pop(self.option.name)
+            url = "{0}?{1}".format(self.path_info, self.param_dict.urlencode())
+            # 不同的筛选需要保留原来的选中项，所以重新放入request.GET里面
+            self.param_dict.setlist(self.option.name, pop_val)
+        else:
+            url = "{0}?{1}".format(self.path_info, self.param_dict.urlencode())
+        # print('end', self.param_dict)
+        yield mark_safe("<a href='{0}'>全部</a>".format(url))
+        yield mark_safe("</div><div class='others-area'>")
+
+
+        for row in self.queryset:
+            from django.http.request import QueryDict
+            # 所有条件self.param_dict
+            # 如果是多选param_dict一直在添加值，之后的url里面的参数就不对了，所以需要循环刚进入进行深拷贝
+            param_dict = copy.deepcopy(self.param_dict)
+            # param_dict = self.param_dict
+
+            # pk 是int 需要转换为str
+            value = str(getattr(row, self.option.val_func_name)() if self.option.val_func_name else row.pk)
+            text = getattr(row, self.option.text_func_name)() if self.option.text_func_name else str(row)
+
+            active = False
+            if self.option.is_multi:
+                # 多选的param_dict需要增加
+                # {'page': ['2'], 'username': ['dqdw'], 'ewq': ['12'] 需要append进去
+                value_list = param_dict.getlist(self.option.name)
+                if value in value_list:
+                    value_list.remove(value)
+                    active = True
+                    print(value_list == param_dict)
+                else:
+                    param_dict.appendlist(self.option.name, value)
+
+            else:
+                # 单选就是覆盖 param_dict 的值
+                value_list = param_dict.getlist(self.option.name)
+                print('value_list',value_list, 'value', value)
+
+                if value in value_list:
+                    active = True
+                param_dict[self.option.name] = value
+                # 是否被选中设置
+
+
+            # print('param_dict11111',param_dict)
+            url = "{0}?{1}".format(self.path_info, param_dict.urlencode())
+            if active:
+                tpl = "<a href='{0}' class='active'>{1}</a>".format(url, text)
+            else:
+                tpl = "<a href='{0}'>{1}</a>".format(url, text)
+            yield mark_safe(tpl)
+
+        yield mark_safe("</div>")
+````
+
+
+
+3. 程序调用过程
+
+   1. ````python
+      # 在自己app01/smatt.py注册Model的时候，实例化FilterOption，把需要做组合搜索的字段传入
+         filter_list = [
+                          FilterOption('username', is_multi=False, text_func_name='text_username', val_func_name='value_username'),
+                          FilterOption('email', is_multi=False, text_func_name='text_email', val_func_name='value_email'),
+                          FilterOption('ug', is_multi=True),
+                          FilterOption('role', is_multi=False),
+
+                         ]
+      ````
+
+   2. ````python
+      # 当用户访问列表页面时，进行一下的操作
+      # test_v1.BaseSupermatt.changelist 部分代码
+
+      		# 定义一个空列表，用于存放传给前端渲染数据FilterList的实例对象
+              filter_list = []
+              # 循环对象自身的filter_list(用户自定义的)
+              # 里面是FilterOption对象
+              for option in self.filter_list:
+              	# 如果是函数
+                  if option.is_func:
+                      # 调用自身，最后返回的必须是FilterList对象
+                      data_list = option.field_or_func(self, option, request)
+                  else:
+                      # 如果是field 字段名：'username', 'ug', 'role'
+                      from django.db.models.fields.related import ForeignKey, ManyToManyField
+                      # 根据model字段名字获取其对象
+                      field = self.model_class._meta.get_field(option.field_or_func)
+                      # 判断是否是FK／M2M
+                      # 如果是，FilterList传入的queryset则是关联的表的数据
+                      # 否则是自己的数据
+                      if isinstance(field, ForeignKey):
+                          data_list = FilterList(option, field.rel.model.objects.all(), request)
+                      elif isinstance(field, ManyToManyField):
+                          data_list = FilterList(option, field.rel.model.objects.all(), request)
+                      else:
+                          data_list = FilterList(option, field.model.objects.all(), request)
+                  filter_list.append(data_list)
+      ````
+
+   3. ````python
+      class FilterList(object):
+          def __init__(self, option, queryset, request):
+              # FilterOption对象
+              self.option = option
+              # 根据field字段名获取的model对象的集合
+              self.queryset = queryset
+              # request.GET 请求的参数QueryDict类型
+              self.param_dict = copy.deepcopy(request.GET)
+              # 当前url
+              self.path_info = request.path_info
+
+          def __iter__(self):
+              # ======先处理显示“全部”这个标签url======
+              # 这个标签url能含有该field的任何一个参数
+              # 比如username的“全部”按钮就是清空的username参数作用
+              
+              # 用于页面显示
+              yield mark_safe("<div class='all-area'>")
+              # 如果 option.name 在request.GET 里面，就pop出来，生成用于"全部"标签的url
+              if self.option.name in self.param_dict:
+                  pop_val = self.param_dict.pop(self.option.name)
+                  # 该url是清空该field条件的url
+                  url = "{0}?{1}".format(self.path_info, self.param_dict.urlencode())
+                  # 不同的筛选需要保留原来的选中项，所以重新放入request.GET里面
+                  # 比如筛选 username、email ，当两者都有条件，点击username的“全部按钮”，只需要清空username 条件，email需要保留
+                  self.param_dict.setlist(self.option.name, pop_val)
+              else:
+                  url = "{0}?{1}".format(self.path_info, self.param_dict.urlencode())
+              yield mark_safe("<a href='{0}'>全部</a>".format(url))
+              yield mark_safe("</div><div class='others-area'>")
+              # ======处理显示“全部”标签url结束======
+
+      		# ======处理field数据的显示======
+              for row in self.queryset:
+                	# 循环当前field的每一个model对象
+                  # 在页面显示对应的a标签的text和url赋值
+                  # 单选的url：request.GET 参数后面需要增加，如果点击是同一个field的，需要覆盖。
+                  # 
+                
+                  from django.http.request import QueryDict
+                  # 所有条件self.param_dict
+                  # 如果是多选param_dict一直在添加值，之后的url里面的参数就不对了，所以需要循环刚进入进行深拷贝
+                  param_dict = copy.deepcopy(self.param_dict)
+                  # param_dict = self.param_dict
+
+                  # pk 是int 需要转换为str
+                  # 用于a标签的value值
+                  # 从对象中看看有没有它的一个方法（在Model文件中定义），有就调用返回一个名字，没有就用外键
+                  value = str(getattr(row, self.option.val_func_name)() if self.option.val_func_name else row.pk)
+      			# 用于a标签的文本
+                  text = getattr(row, self.option.text_func_name)() if self.option.text_func_name else str(row)
+      			
+                  # 用选中样式的判断
+                  active = False
+                  
+                  # 处理多选
+                  if self.option.is_multi:
+                      # 多选的话 param_dict 需要增加，最后体现在url GET请求的参数位置
+                      # {'page': ['2'], 'username': ['dqdw'], 'ewq': ['12'] 需要append进去
+                      # 获取当前的FilterOption对象的名字列表
+                      value_list = param_dict.getlist(self.option.name)
+                      # 如果当前对象的value值在列表里面，html页面需要显示选中样式
+                      # 再次点击需要移除
+                      if value in value_list:
+                          # value_list.remove(value) # 此方法无法移除
+                          param_dict.setlist(self.option.name, value_list)
+                          active = True
+                      else:
+                          # 其它的a标签的url需要添加自身的name属性和value值
+                          param_dict.appendlist(self.option.name, value)
+
+                  else:
+                      # 处理单选
+                      # 根据当前FilterOption对象获取request.GET QueryDict对象
+                      value_list = param_dict.getlist(self.option.name)
+                      if value in value_list:
+                          active = True
+                      # 覆盖url GET请求对应的参数的值
+                      param_dict[self.option.name] = value
+
+
+
+           		# url拼接
+                  url = "{0}?{1}".format(self.path_info, param_dict.urlencode())
+                  if active:
+                      tpl = "<a href='{0}' class='active'>{1}</a>".format(url, text)
+                  else:
+                      tpl = "<a href='{0}'>{1}</a>".format(url, text)
+                  yield mark_safe(tpl)
+
+              yield mark_safe("</div>")
+      ````
+
+   4. ````Html
+      <!-- 循环获取FilterList,FilterList 定义了__iter__函数， 可以迭代 -->
+       	{% if filter_list %}
+              <div class="row" style="margin-left: 30px" id="comb-search">
+              <h3>组合搜索</h3>
+              {% for fl in filter_list %}
+      {#             fl = FieldList(queryset=[UserInfo,])#}
+                  <div class="row">
+                   {% for row in fl %}
+      {#                 __iter__ 方法 yield queryset的每一个对象#}
+                       {{ row }}
+                       {% endfor %}
+                  </div>
+              {% endfor %}
+              </div>
+          {% endif %}
+      ````
+
+      ​
+
+      ​
+
+
+

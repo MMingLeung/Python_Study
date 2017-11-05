@@ -1,15 +1,72 @@
 {% load sumatt_list %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Change_list</title>
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-3.3.7-dist/css/bootstrap.css' %}">
+    <style>
+        #comb-search a{
+            border: 1px solid;
+            margin: 5px 5px;
+            padding: 8px;
+            display: inline-block;
+        }
+        #comb-search a.active{
+            background-color: #b9def0;
+        }
+        .all-area{
+            float: left;
+        }
+        .others-area{
+            padding-left: 70px;
+        }
+    </style>
 </head>
+
 <body>
 <h1>数据列表</h1>
-<a href={{ add_url }}>添加</a>
+<form action="" method="POST">
+    {% csrf_token %}
+
+<!-- 循环获取FilterList,FilterList 定义了__iter__函数， 可以迭代 -->
+ 	{% if filter_list %}
+        <div class="row" style="margin-left: 30px" id="comb-search">
+        <h3>组合搜索</h3>
+        {% for fl in filter_list %}
+{#             fl = FieldList(queryset=[UserInfo,])#}
+            <div class="row">
+             {% for row in fl %}
+{#                 __iter__ 方法 yield queryset的每一个对象#}
+                 {{ row }}
+                 {% endfor %}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+
+
+
+    {% if action_list %}
+    <select class="form-control" style="width: 200px;display: inline-block" name="action">
+        {% for item in action_list %}
+            <option value="{{ item.name }}">{{ item.text }}</option>
+        {%  endfor %}
+    </select>
+    <input type="submit" class="btn btn-primary" value="执行" style="display: inline-block">
+    {% endif %}
+</div>
+<div>
+<a class="btn btn-default" style="float: right;" href={{ add_url }}>添加</a>
 <!-- 数据表格begin -->
 {% func result_list list_display BaseSupermattObj %}
+</div>
+</form>
 <!-- 数据表格end -->
+<ul class="pagination">
+{{ page_str|safe }}
+    </ul>
+
 </body>
 </html>
