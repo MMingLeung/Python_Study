@@ -1,0 +1,19 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<ul>
+    {% for item in data_list%}
+    <li>{{ item['title'] }} = {{ item['a'] }}</li>
+    {% end %}
+
+</ul>
+<!--uimethod-->
+<!--{{ tab() }}-->
+{% raw tab() %}
+
+
+<!--uimodule-->
+{% module Custom(123) %}
+
+
+{% end %}
