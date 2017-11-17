@@ -1,0 +1,1 @@
+SESSION_ENGINE = 'session_code.RedisSession'

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link rel="stylesheet" href="{{ static_url('common.css') }}">
+</head>
+<body>
+<h1 class="c1">Login</h1>
+<form method="POST">
+    <!--{{ xsrf_form_html() }}-->
+
+<input type="text" name="user">
+<input type="text" name="pwd">
+<input type="submit">
+    </form>
+</body>
+</html>

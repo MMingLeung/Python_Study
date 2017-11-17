@@ -1,9 +1,28 @@
 {#{{ form.as_p }}#}
-
-    {% for item in head %}
-       <p>{% for i in item %}
-           {{ i }}
-           {% endfor %}
-           </p>
+<form method="POST" novalidate style="width: 700px; margin: 0 auto;margin-top: 20px;">
+ {% csrf_token %}
+    {% for col in form %}
+        {% if col.is_popup %}
+                <p>{{ col.item.field.label }}{{ col.item }}<a href="#" onclick='PopUpOpen("{{ col.popurl }}")'>添加</a>{{ col.item.errors.0 }}</p>
+            {% else %}
+             <p>{{ col.item.field.label }}{{ col.item }}{{ col.item.errors.0 }}</p>
+        {% endif %}
     {% endfor %}
     <input type="submit" value="submit">
+</form>
+
+<script>
+    function popCallBack(data_dict) {
+        console.log(data_dict);
+        var tar = document.createElement('option');
+        tar.innerHTML = data_dict.text;
+        tar.setAttribute('value', data_dict.pk);
+        tar.setAttribute('selected', 'selected');
+        document.getElementById(data_dict.popid).appendChild(tar)
+
+    }
+    function PopUpOpen(url) {
+        window.open(url, url, 'status=1, height:500, width:600, toolbar=0, resizeable=0')
+    }
+
+</script>

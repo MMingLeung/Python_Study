@@ -9,10 +9,8 @@ def table_head(list_display, basesupermatt_obj):
         # item 是自定义的list
         # BaseSupermattObj.model_class
         if isinstance(item, FunctionType):
-            # print(item.__name__.title())
             yield item(basesupermatt_obj, is_header=True)
         else:
-            # print(item)
             # 获取model里面username = .... 的对象
             obj = basesupermatt_obj.model_class._meta.get_field(item)
             yield obj.verbose_name

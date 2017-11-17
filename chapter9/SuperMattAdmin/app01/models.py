@@ -12,6 +12,19 @@ class UserInfo(models.Model):
     def __str__(self):
         return self.username
 
+    def text_username(self):
+        return self.username
+
+    def value_username(self):
+        return self.username
+
+    def text_email(self):
+        return self.email
+
+    def value_email(self):
+        return self.email
+
+
 class Role(models.Model):
 
     title = models.CharField(max_length=64)
