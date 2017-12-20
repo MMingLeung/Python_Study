@@ -92,7 +92,7 @@
 
 ## 五、在自定义插件supermatt中创建程序
 
-该程序用于循环获取其它app注册的model，对其生成对应url已经html页面，已经对应增删改查的方法
+该程序用于循环获取其它app注册的model，对其生成对应url、html页面和对应增删改查的方法
 
 	# /supermatt/service/test_vi.py
 	class SuperMattSite(object):
@@ -115,12 +115,13 @@
 		'''
 	        self._registry[model_class] = m(model_class, self)
 	        '''
+	        字典结构
 	        {
 	        UserInfo类名: BaseSupermatt（UserInfo类名, SuperMattSite对象）#SuperMattUserInfo
 	        Role 类名：BaseSupermatt（Role类名, SuperMattSite对象）
 	        XX 类名： BaseSupermatt（Role类名, SuperMattSite对象）
 	        }
-	        '''
+	   		'''
 	
 	    def login(self, request):
 	        return HttpResponse('login')
@@ -135,7 +136,8 @@
 	            # http://127.0.0.1:8000/su/app01/role
 	            app_label = model_class._meta.app_label
 	            model_name = model_class._meta.model_name
-	            ret.append(url(r'^%s/%s/' % (app_label, model_name), include(supermatt_obj.urls)))
+	            ret.append(url(r'^%s/%s/' % (app_label, model_name), 	
+	            			include(supermatt_obj.urls)))
 	        return ret
 	
 	    @property
@@ -157,7 +159,7 @@
 	    def __init__(self, model_class, site):
 	        #当前请求的model的类,把类当作参数
 	        self.model_class = model_class
-		# site 是SuperMattSite的对象包含其属性name_space （之后使用）
+			#site是SuperMattSite的对象包含其属性name_space （之后使用）
 	        self.site = site
 	        self.request = None
 	
@@ -285,12 +287,12 @@ for model_class, supermatt_obj in self._registry.items():
 7、最终urls 是这样：
       urls(r'^su/$', ([
 	                 url(r'^login/$', self.login, name='login'),
-	                 url(r'^%s/%s/' % (app_label, model_name), (
+	                 url(r'^%s/%s/' % (app_label, model_name), [(
 	url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
       url(r'^add/$', self.add_view, name='%s_%s_add' % info),
       url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
        url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),app_name, namespace)
-]，self.app_name,self.name_sapce ),
+] ),
 
 8、 程序执行下来生成了一堆url，我们就可以访问这些url了
 
@@ -309,7 +311,7 @@ url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
         查看列表
         :param request: 
         :return: 
-        ''‘
+        ''‘te
         self.request = request
         # 根据当前对象查询数据
         result_list = self.model_class.objects.all()
@@ -972,10 +974,10 @@ class PageInfo:
 思考：
 
 1.  需要取出数据，在页面上显示
-2. 让用户自定义的，可以传入是函数或者字符串，用于标识显示哪个数据表
-3. 单选多选的设置
-4. 选中后url的变化
-5. 面向对象的思维，类与类的嵌套使用
+2.  让用户自定义的，可以传入是函数或者字符串，用于标识显示哪个数据表
+3.  单选多选的设置
+4.  选中后url的变化
+5.  面向对象的思维，类与类的嵌套使用
 
 
 
@@ -1215,6 +1217,7 @@ class FilterList(object):
                           active = True
                       # 覆盖url GET请求对应的参数的值
                       param_dict[self.option.name] = value
+      ````
 
 
 
@@ -1225,7 +1228,7 @@ class FilterList(object):
                   else:
                       tpl = "<a href='{0}'>{1}</a>".format(url, text)
                   yield mark_safe(tpl)
-
+    
               yield mark_safe("</div>")
       ````
 

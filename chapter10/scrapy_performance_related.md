@@ -826,3 +826,466 @@ item_dropped = object()
 '''
 ````
 
+
+
+#### 8、中间件
+
+##### 1、配置文件注册
+
+`````
+SPIDER_MIDDLEWARES = {
+   'sp2.middlewares.Sp2SpiderMiddleware': 543,
+}
+
+DOWNLOADER_MIDDLEWARES = {
+   'sp2.middlewares.MyCustomDownloaderMiddleware': 543,
+}
+`````
+
+
+
+
+
+##### 1、爬虫中间件
+
+````Python
+class SpiderMiddleware(object):
+
+    def process_spider_input(self,response, spider):
+        """
+        下载完成，执行，然后交给parse处理
+        :param response: 下载完成的数据
+        :param spider: 
+        :return: 
+        """
+        print('md_process_spider_input')
+
+    def process_spider_output(self,response, result, spider):
+        """
+        spider处理完成，返回时调用
+        :param response:下载完成的数据
+        :param result:准备给调度器的对象
+        :param spider:
+        :return: 必须返回包含 Request 或 Item 对象的可迭代对象(iterable)
+        """
+        print("md_process_spider_output")
+        return result
+
+    def process_spider_exception(self,response, exception, spider):
+        """
+        异常调用
+        :param response:
+        :param exception:
+        :param spider:
+        :return: None,继续交给后续中间件处理异常；含 Response 或 Item 的可迭代对象(iterable)，交给调度器或pipeline
+        """
+        return None
+
+
+    def process_start_requests(self,start_requests, spider):
+        """
+        爬虫启动时调用
+        :param start_requests:
+        :param spider:
+        :return: 包含 Request 对象的可迭代对象
+        """
+        print('md_process_start_requests')
+        return start_requests
+````
+
+
+
+##### 2、下载器中间件
+
+````python
+# -*- coding: utf-8 -*-
+
+# Define here the models for your spider middleware
+#
+# See documentation in:
+# http://doc.scrapy.org/en/latest/topics/spider-middleware.html
+
+from scrapy import signals
+
+
+class SpiderMiddleware(object):
+
+    def process_spider_input(self,response, spider):
+        """
+        下载完成，执行，然后交给parse处理
+        :param response: 下载完成的数据
+        :param spider: 
+        :return: 
+        """
+        print('md_process_spider_input')
+
+    def process_spider_output(self,response, result, spider):
+        """
+        spider处理完成，返回时调用
+        :param response:下载完成的数据
+        :param result:准备给调度器的对象
+        :param spider:
+        :return: 必须返回包含 Request 或 Item 对象的可迭代对象(iterable)
+        """
+        print("md_process_spider_output")
+        return result
+
+    def process_spider_exception(self,response, exception, spider):
+        """
+        异常调用
+        :param response:
+        :param exception:
+        :param spider:
+        :return: None,继续交给后续中间件处理异常；含 Response 或 Item 的可迭代对象(iterable)，交给调度器或pipeline
+        """
+        return None
+
+
+    def process_start_requests(self,start_requests, spider):
+        """
+        爬虫启动时调用
+        :param start_requests:
+        :param spider:
+        :return: 包含 Request 对象的可迭代对象
+        """
+        print('md_process_start_requests')
+        return start_requests
+
+
+
+class DownMiddleware(object):
+    def process_request(self, request, spider):
+        """
+        请求需要下载时执行
+        :param request: 
+        :param spider: 
+        :return:  
+            None,继续后续中间件去下载；
+            Response对象，停止process_request的执行，开始执行process_response
+            Request对象，停止中间件的执行，将Request重新调度器
+            raise IgnoreRequest异常，停止process_request的执行，开始执行process_exception
+        """
+        print('DMD_process_request')
+        from scrapy.http import Request
+        # 在下载前自定义请求头等信息
+        # request.method = 'POST'
+        # request.headers['xxx']='xxxx'
+
+        # 自定义下载
+        # import requests
+        # res = requests.get(url='xxx')
+        # return data
+
+        return None
+
+
+
+    def process_response(self, request, response, spider):
+        """
+        spider处理完成，返回时调用
+        :param response:
+        :param result:
+        :param spider:
+        :return: 
+            Response 对象：转交给其他中间件process_response
+            Request 对象：停止中间件，request会被重新调度下载
+            raise IgnoreRequest 异常：调用Request.errback
+        """
+        print('DMD_process_response')
+        print(spider)
+
+        # 返回值做特殊操作，如编码处理、响应头解析
+        # response.encoding = 'utf-8'
+
+        # 自定义类，封装response，用于扩展
+
+        return response
+
+    def process_exception(self, request, exception, spider):
+        """
+        当下载处理器(download handler)或 process_request() (下载中间件)抛出异常
+        :param response:
+        :param exception:
+        :param spider:
+        :return: 
+            None：继续交给后续中间件处理异常；
+            Response对象：停止后续process_exception方法
+            Request对象：停止中间件，request将会被重新调用下载
+        """
+        return None
+````
+
+
+
+#### 9、自定义命令
+
+
+
+````Python
+# 1.settings.py 加入存放自定义命令py文件的文件夹名字
+COMMANDS_MODULE = 'spider_test.commands'
+````
+
+
+
+````Python
+# 2.自定义
+from scrapy.commands import ScrapyCommand
+
+
+class Command(ScrapyCommand):
+    requires_project = True
+
+    def syntax(self):
+        return '[options]'
+
+    def short_desc(self):
+        return 'Runs all of the spiders'
+
+    def run(self, args, opts):
+        # from scrapy.crawler import CrawlerProcess
+        # from scrapy.crawler import ExecutionEngine
+        # CrawlerProcess.start() # 内部reactor.run()运行死循环
+        # 获取爬虫列表
+        spider_list = self.crawler_process.spiders.list()
+        for name in spider_list:
+            # 初始化爬虫
+            # 1.调用父类的crawl()
+            # 2.内部把sipder生成器变成迭代对象
+            # 3.放到队列
+            # 4.取对象
+            # 5.执行下载
+            self.crawler_process.crawl(name, **opts.__dict__)
+        # 开始执行爬虫
+        self.crawler_process.start()
+````
+
+
+
+3. 执行：scrapy + py文件名字
+
+
+
+#### 10、中间件实现代理
+
+
+
+默认代理设置：
+
+````python
+# 自定义命令py文件
+from scrapy.commands import ScrapyCommand
+
+
+class Command(ScrapyCommand):
+    requires_project = True
+
+    def syntax(self):
+        return '[options]'
+
+    def short_desc(self):
+        return 'Runs all of the spiders'
+
+    def run(self, args, opts):
+        import os
+        # from scrapy.contrib.downloadermiddleware.httpproxy import HttpProxyMiddleware
+        # scrapy 定义的规则找"_proxy"的环境变量作为代理
+        os.environ['http_proxy'] = 'http://root:xxxx@xxx.xxx.xx.xx:xxxx/'
+        os.environ['https_proxy'] = 'http://xxx.xxx.xx.xx:xxxx/'
+        
+        # .... 省略下面代码
+
+````
+
+
+
+
+
+
+
+自定义：
+
+````Python
+# middlewares.py
+# 需要在settings.py中加入该中间件
+def to_bytes(text, encoding=None, errors='strict'):
+    if isinstance(text, bytes):
+        return text
+    if not isinstance(text, six.string_types):
+        raise TypeError('to_bytes must receive a unicode, str or bytes '
+                        'object, got %s' % type(text).__name__)
+    if encoding is None:
+        encoding = 'utf-8'
+    return text.encode(encoding, errors)
+
+
+class MyProxyMiddleware(object):
+    def process_request(self, request, spider):
+        PROXIES = [
+            {'ip_port': 'xxx.xxx.xxx.xxx:80', 'user_pass': ''},
+        ]
+        proxy = random.choice(PROXIES)
+        if proxy['user_pass'] is not None:
+            request.meta['proxy'] = to_bytes("http://%s" % proxy['ip_port'])
+            encoded_user_pass = base64.encodebytes(proxy['user_pass'])
+            request.headers['Proxy-Authorization'] = to_bytes('Basic ' + encoded_user_pass)
+            print("**************ProxyMiddleware have pass************" + proxy['ip_port'])
+
+        else:
+            print("**************ProxyMiddleware no pass************" + proxy['ip_port'])
+			request.meta['proxy'] = to_bytes("http://%s" % proxy['ip_port'])
+
+
+````
+
+
+
+#### 11、配置文件
+
+````python
+# ######## 1.爬虫名称 ########
+BOT_NAME = 'sp3'
+
+# ######## 2.爬虫路径 ########
+SPIDER_MODULES = ['sp3.spiders']
+NEWSPIDER_MODULE = 'sp3.spiders'
+
+# ######## 3.请求头 ########
+# USER_AGENT = 'sp3 (+http://www.yourdomain.com)'
+
+# ######## 4.爬虫协议 ########
+ROBOTSTXT_OBEY = True
+
+# ######## 5.请求的并发数 ########
+#CONCURRENT_REQUESTS = 32
+
+# ######## 6.延迟下载秒数 ########
+#DOWNLOAD_DELAY = 3
+
+# ######## 7.单域名访问并发数 ########
+#CONCURRENT_REQUESTS_PER_DOMAIN = 16
+# 单IP请求的并发数，有值忽略CONCURRENT_REQUESTS_PER_DOMAIN
+#CONCURRENT_REQUESTS_PER_IP = 16
+
+# ######## 9.是否支持cookie,cookie_jar ########
+# COOKIES_ENABLED = False
+# COOKIES_DEBUG = True
+
+# ######## 10.监控爬虫信息 ########
+# CMD --> telnet ip port
+#TELNETCONSOLE_ENABLED = False
+#TELNETCONSOLE_HOST = ''
+#TELNETCONSOLE_PORT = [6023,]
+
+# ######## 11.默认请求头 ########
+#DEFAULT_REQUEST_HEADERS = {
+#   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+#   'Accept-Language': 'en',
+#}
+
+# ######## 12.爬虫中间件 ########
+#SPIDER_MIDDLEWARES = {
+#    'sp3.middlewares.Sp3SpiderMiddleware': 543,
+#}
+
+# ######## 13.下载中间件 ########
+#DOWNLOADER_MIDDLEWARES = {
+#    'sp3.middlewares.MyCustomDownloaderMiddleware': 543,
+#}
+
+# ######## 14.基于信号自定义扩展 ########
+#EXTENSIONS = {
+#    'scrapy.extensions.telnet.TelnetConsole': None,
+#}
+
+
+# ######## 15.pipline配置 ########
+#ITEM_PIPELINES = {
+#    'sp3.pipelines.Sp3Pipeline': 300,
+#}
+
+# ######## 16.自动限速 ########
+# AUTOTHROTTLE_ENABLED = True
+# 初始下载延迟
+# AUTOTHROTTLE_START_DELAY = 5
+# 最大延迟
+# AUTOTHROTTLE_MAX_DELAY = 60
+# 平均并发数
+# AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
+# 显示状态
+# AUTOTHROTTLE_DEBUG = False
+
+# ######## 17.最大深度 ########
+# DEPTH_LIMIT = 3
+
+# ######## 18.调度器 ########
+# 默认0
+# 后进先出，深度优先
+# DEPTH_PRIORITY = 0
+# SCHEDULER_DISK_QUEUE = 'scrapy.squeue.PickleLifoDiskQueue'
+# SCHEDULER_MEMORY_QUEUE = 'scrapy.squeue.LifoMemoryQueue'
+
+# 先进先出，广度优先
+# DEPTH_PRIORITY = 1
+# SCHEDULER_DISK_QUEUE = 'scrapy.squeue.PickleFifoDiskQueue'
+# SCHEDULER_MEMORY_QUEUE = 'scrapy.squeue.FifoMemoryQueue'
+
+# 调度器
+# 默认队列存在于内存，可以自定义方法修改存放位置
+from scrapy.core.scheduler import Scheduler
+# SCHEDULER = 'scrapy.core.scheduler.Scheduler'
+# from scrapy.core.scheduler import Scheduler
+
+# ######## 19.去重规则 ########
+# DUPEFILTER_CLASS = 'step8_king.duplication.RepeatUrl'
+
+# ######## 20.缓存 ########
+# 生成文件，下次直接访问缓存文件
+# 是否启用缓存策略
+# HTTPCACHE_ENABLED = True
+
+# 缓存策略：所有请求均缓存，下次在请求直接访问原来的缓存即可
+# HTTPCACHE_POLICY = "scrapy.extensions.httpcache.DummyPolicy"
+# 缓存策略：根据Http响应头：Cache-Control、Last-Modified 等进行缓存的策略
+# HTTPCACHE_POLICY = "scrapy.extensions.httpcache.RFC2616Policy"
+
+# 缓存超时时间
+# HTTPCACHE_EXPIRATION_SECS = 0
+
+# 缓存保存路径
+# HTTPCACHE_DIR = 'httpcache'
+
+# 缓存忽略的Http状态码
+# HTTPCACHE_IGNORE_HTTP_CODES = []
+
+# 缓存存储的插件
+# HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+# ################
+
+# ######## 21.自定义命令 ########
+COMMANDS_MODULE = 'sp3.commands'
+
+# ######## 22.HTTPS证书 ########
+DOWNLOADER_HTTPCLIENTFACTORY ="scrapy.core.downloader.webclient.ScrapyHTTPClientFactory"
+DOWNLOADER_CLIENTCONTEXTFACTORY = "step8_king.https.MySSLFactory"
+
+# https.py
+# from scrapy.core.downloader.contextfactory import ScrapyClientContextFactory
+# from twisted.internet.ssl import (optionsForClientTLS, CertificateOptions, PrivateCertificate)
+# 
+# 
+# class MySSLFactory(ScrapyClientContextFactory):
+#     def getCertificateOptions(self):
+#         from OpenSSL import crypto
+#         v1 = crypto.load_privatekey(crypto.FILETYPE_PEM, open('/Users/matt/client.key.unsecure', mode='r').read())
+#         v2 = crypto.load_certificate(crypto.FILETYPE_PEM, open('/Users/matt/client.pem', mode='r').read())
+#         return CertificateOptions(
+#             privateKey=v1,  # pKey对象
+#             certificate=v2,  # X509对象
+#             verify=False,
+#             method=getattr(self, 'method', getattr(self, '_ssl_method', None))
+#         )
+````
+
+
+

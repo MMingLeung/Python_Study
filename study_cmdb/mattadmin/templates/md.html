@@ -1,0 +1,20 @@
+<table border="1" class="table table-bordered">
+<thead>
+<tr>
+  {% for item in head %}
+      <th>
+      {{ item }}
+      </th>
+    {% endfor %}
+</tr>
+</thead>
+    <tbody>
+    {% for item in result_list %}
+        <tr>
+        {% for val in item %}
+            <td>{{ val }}</td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+</tbody>
+</table>

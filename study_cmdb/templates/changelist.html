@@ -1,0 +1,70 @@
+{% load result_display %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{% static 'bootstrap-3.3.7-dist/css/bootstrap.css' %}">
+    <style>
+        .combine-search a{
+            display: inline-block;
+            border: 1px solid #dddddd;
+            padding: 5px 5px;
+            margin: 3px;
+
+        }
+        .combine-search a.active {
+           background-color: #2aabd2;
+        }
+        .combine-search .all-area{
+            float: left;
+        }
+        .combine-search .other-area{
+            padding-left: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<div style="margin-left: 20px;">
+    <h1>数据列表</h1>
+    {% if filter_list %}
+        <div class="row">
+            <h3>组合搜索</h3>
+            {% for fl in filter_list %}
+                <div class="combine-search">
+                {% for row in fl %}
+                    {{ row }}
+                {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <form method="POST" action="">
+        {% csrf_token %}
+        {% if action_list %}
+            <div class="row">
+                <select name="action" class="form-control" style="display: inline-block;width: 200px;">
+                    {% for item in action_list %}
+                        <option value="{{ item.name }}">{{ item.text }}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" value="执行" class="btn btn-default">
+            </div>
+        {% endif %}
+
+        <a href="{{ url }}" class="btn btn-success" style="float: right;">添加</a>
+        <!-- 数据表格 begin -->
+        {% result_display result_list list_display base_obj %}
+        <!-- 数据表格 end -->
+
+    </form>
+
+
+    <ul class="pagination">
+        {{ page|safe }}
+    </ul>
+</div>
+</body>
+</html>

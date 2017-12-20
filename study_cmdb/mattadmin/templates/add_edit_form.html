@@ -1,0 +1,8 @@
+    {% for row in form %}
+        {% if row.is_pop %}
+        <p>{{ row.item.field.label }}{{ row.item }}{{ row.item.errors.0 }}<a href="#" onclick="popUpOpen('{{ row.popup_url }}')">添加</a></p>
+        {% else %}
+        <p>{{ row.item.field.label }}{{ row.item }}{{ row.item.errors.0 }}</p>
+        {% endif %}
+    {% endfor %}
+

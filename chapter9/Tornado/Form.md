@@ -80,6 +80,7 @@ class CharField(Field):
         self.widget = widget if widget else self.default_widget()
 
     def valid_field(self, value):
+    	# 正则匹配
         if re.match(self.regex, value):
             self.value = value
             return True
@@ -123,5 +124,10 @@ class BaseForm(object):
             if not result:
                 flag = False
         return flag
+        
+form = LoginForm({'user':'matt', 'email':'matt@gmail.com'})
+print(form.user)
+print(form.email)
+print(form.is_valid())
 ````
 

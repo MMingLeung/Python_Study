@@ -44,7 +44,6 @@ Foo/
 
 |-- README
 
-
 ---
 # 二、套接字
 
@@ -243,7 +242,7 @@ TCP是面向连接的、面向流的。无法得数据流的开始位置结束�
                 conn.send(data_err)
             except Exception:
                 break
-
+    
     #客户端
     import socket
     import struct
@@ -275,10 +274,9 @@ TCP是面向连接的、面向流的。无法得数据流的开始位置结束�
             data = phone.recv(1024)
             recv_size += len(data)
             recv_data +=data
-    
-    
-        print(recv_data.decode("utf-8"))
 
+
+        print(recv_data.decode("utf-8"))
 ---
 
 模仿FTP小程序
@@ -314,6 +312,7 @@ TCP是面向连接的、面向流的。无法得数据流的开始位置结束�
                 except:
                     self.server_close()
                     raise
+                    
         def server_bind(self):
             """Called by constructor to bind the socket.        
             "”"        
@@ -362,6 +361,7 @@ TCP是面向连接的、面向流的。无法得数据流的开始位置结束�
                             func(head_dic)
                     except Exception:
                         break
+                        
         def put(self,args):
             file_path=os.path.normpath(os.path.join(self.BASE_DIR,
                 self.server_dir,
@@ -369,26 +369,27 @@ TCP是面向连接的、面向流的。无法得数据流的开始位置结束�
             ))
     
             filesize=args['filesize']
-            recv_size=0        print('----->',file_path)
+            recv_size=0        
+            print('----->',file_path)
             with open(file_path,'wb') as f:
                 while recv_size < filesize:
                     recv_data=self.conn.recv(self.max_packet_size)
                     f.write(recv_data)
                     recv_size+=len(recv_data)
                     print('recvsize:%s filesize:%s' %(recv_size,filesize))
-    
-    
+
+
     tcpserver1=MYTCPServer(('127.0.0.1',8080))
-    
+
     tcpserver1.run()
 
     import socket
     import struct
     import json
     import os
-    
-    
-    
+
+
+​    
     class MYTCPClient:
         address_family = socket.AF_INET
     
@@ -422,8 +423,8 @@ TCP是面向连接的、面向流的。无法得数据流的开始位置结束�
                 if hasattr(self,cmd):
                     func=getattr(self,cmd)
                     func(l)
-    
-    
+
+
         def put(self,args):
             cmd=args[0]
             filename=args[1]
@@ -453,7 +454,6 @@ TCP是面向连接的、面向流的。无法得数据流的开始位置结束�
     client=MYTCPClient(('127.0.0.1',8080))
     
     client.run()
-    
 
 ---
 # 五、 基于tcp协议的socketserver
@@ -466,10 +466,10 @@ TCP是面向连接的、面向流的。无法得数据流的开始位置结束�
     #FtpServer(conn, addr, obj)
     
     class FTPServer(socketserver.BaseRequestHandler): 
-            #通信    
+           #通信    
            def handle(self):
-            print(self.request) 
-            #套接字对象conn, addr        
+           print(self.request) 
+           #套接字对象conn, addr        
            while True:
                 data =self.request.recv(1024)
                 print(data)
@@ -508,8 +508,8 @@ FTP小程序改进：
     import struct
     import json
     import os
-    
-    
+
+
     class MyTCPServer(socketserver.BaseRequestHandler):
         max_data_size = 8192    
         coding = 'utf-8’    
@@ -578,9 +578,9 @@ FTP小程序改进：
     import struct
     import json
     import os
-    
-    
-    
+
+
+​    
     class MYTCPClient:
         address_family = socket.AF_INET
     
@@ -614,8 +614,8 @@ FTP小程序改进：
                 if hasattr(self,cmd):
                     func=getattr(self,cmd)
                     func(l)
-    
-    
+
+
         def put(self,args):
             cmd=args[0]
             filename=args[1]
@@ -639,22 +639,22 @@ FTP小程序改进：
                     print(send_size)
                 else:
                     print('upload successful')
-    
-    
-    
-    
+
+
+​    
+​    
     client=MYTCPClient(('127.0.0.1',8080))
-    
+
     client.run()
-    
+​    
 
 ---
 # 六、UPD协议
 UDP：用户数据报协议，无连接的，面向消息的。不会使用块的合并优化算法，由于UDP支持一对多的模式，所以接收端的skbuff（套接字缓冲区）采用了链式结构来记录每一个达到的UDP包，在每个UDP包中就有了消息头，对于接收端来说容易分区处理。
     #服务端
     import socket
-    
-    
+
+
     udpserver = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udpserver.bind(('127.0.0.1', 8080))
     
@@ -664,7 +664,7 @@ UDP：用户数据报协议，无连接的，面向消息的。不会使用块�
         print(data.decode("utf-8"))
         msg = input(">>: ")
         udpserver.sendto(msg.encode("utf-8" ), addr)
-
+    
     #客户端
     import socket
     
@@ -771,8 +771,8 @@ Cpython 不能实现并行的多线程，是GIL锁导致的
 	    time.sleep(3)
 	    print("listen end")
 	    print(time.ctime())
-	
-	
+
+
 	def writing():
 	    print("writing article!")
 	    time.sleep(5)
@@ -793,8 +793,8 @@ Cpython 不能实现并行的多线程，是GIL锁导致的
 	
 	thread.append(th1)
 	thread.append(th2)
-	
-	
+
+
 	if __name__ == '__main__':
 	    #设置守护线程，如果主线程结束，子线程就算没有执行完也跟着结束            
 	    th1.setDaemon(True)  
@@ -823,8 +823,8 @@ IO密集型：存在大量IO操作（socket.accept/recv），效率显著。
 	    sum = 0    
 	    for i in range(n):
 	        sum +=i
-	
-	
+
+
 	s = time.time()
 	#开线程 慢了
 	import threading
@@ -953,7 +953,7 @@ python 使用多核：开多个进程，弊端是占用资源非常大，切换�
 	
 	    r = ''    
 		while True:
-
+	
 	        n = yield r
 	        if not n:
 	            return        
@@ -980,7 +980,7 @@ python 使用多核：开多个进程，弊端是占用资源非常大，切换�
 ### 11.1 greenlet
 
 	from greenlet import greenlet
-	
+
 	def test1():
 	    print(12)
 	    gr2.switch()
@@ -997,7 +997,7 @@ python 使用多核：开多个进程，弊端是占用资源非常大，切换�
 	gr1.switch()
 
 ### 11.2 gevent
-	
+
 	#简易爬虫gevent协程的应用
 	from gevent import monkey
 	monkey.patch_all()
@@ -1027,10 +1027,10 @@ python 使用多核：开多个进程，弊端是占用资源非常大，切换�
 	import threading
 	import time
 	import logging
-	
-	
+
+
 	logging.basicConfig(level=logging.DEBUG, format='(%(threadName)-10s) %(message)s')
-	
+
 	def worker(event):
 	    logging.debug('waiting for redis ready...')
 	    while not event.isSet():
@@ -1073,8 +1073,8 @@ python 使用多核：开多个进程，弊端是占用资源非常大，切换�
 	
 	if __name__ == '__main__':
 	    info("main process line")
-	
-	
+
+
 	    p1 = Process(target=info, args=('matt',))
 	    p2 = Process(target=foo, args=('joy',))
 	    p1.start()
@@ -1084,8 +1084,8 @@ python 使用多核：开多个进程，弊端是占用资源非常大，切换�
 	    p2.join()
 	
 	    print("end.")
-	
-	
+
+
 	from multiprocessing import Process
 	import time
 	
@@ -1157,7 +1157,7 @@ IO模型
 	#等待数据
 	# print(data.decode('utf-8'))
 	#将数据从内核态复制到进程中
-	
+
 
 	#client
 	import socket
@@ -1255,7 +1255,7 @@ select 缺点：
 2、遍历所有fd，查看是否有数据访问
 
 3、最大连接数（1024）
-      
+​      
 
 poll：最大连接数没有限制
 
@@ -1314,14 +1314,14 @@ epoll:
 ## 1、生产者消费者模型
 
 	import queue
-	
+
 	que = queue.Queue(3)# 默认先进先出(FIFO)
-	
+
 	que.put(1)
 	que.put('helo')
 	#put也有阻塞状态，超出设定值就阻塞que.put('323',False)
-	
-	
+
+
 	g = que.get()
 	print(g)
 	g = que.get()
@@ -1338,8 +1338,8 @@ epoll:
 	
 	que.join()
 	print('ending')
-	
-	
+
+
 	q= queue.LifoQueue() #先进后出q.put(111)
 	q.put(1112)
 	q.put(1113)
