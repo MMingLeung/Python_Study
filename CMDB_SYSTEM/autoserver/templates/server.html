@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+
+{% block css %}
+{% endblock %}
+
+{% block content %}
+    <div class="content">
+        <h1>服务器列表</h1>
+        {% include 'display_templates/display_table.html' %}
+    </div>
+{% endblock content %}
+
+{% block js %}
+
+    <script src={% static 'display_list.js' %}></script>
+
+    <script>
+        $.xx('/backend/server_json.html');
+    </script>
+{% endblock %}

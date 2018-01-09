@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="test1">
+
+</div>
+<script src="/static/Highcharts-5.0.12/code/highcharts.js"></script>
+<script>
+    // 全局时间配置
+    Highcharts.setOptions({
+        global: {
+            userUTC: false
+        }
+    });
+    var chart = new Highcharts.Chart('test1', {
+        title: {
+            text: '大标题',
+            x: 0
+        },
+        subtitle: {
+            text: '小标题',
+            x: 0
+        },
+        chart: {
+            events: {
+                load: function (e) {
+                    // 图标加载时执行该函数
+
+                }
+            }
+        },
+        credits: {
+            enable: true,
+            position: {
+                align: 'right',
+                verticalAlign: 'bottom'
+            },
+            text: 'made by MattLeung',
+            href: ''
+        },
+        xAxis: {
+            // 适用于固定的x轴
+            // categories: ['一月', '二月', '三月']
+            type: 'datetime',
+                    labels: {
+                        formatter: function () {
+                            return Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.value);
+                        },
+                        rotation: 30
+                    }
+
+        },
+        yAxis: {
+            title: {
+                text: '数值'
+            }
+        },
+        /* series: [
+            {
+                name: '洛杉矶',
+                data: [1, 2, 3]
+            },
+            {
+                name: '南京',
+                data: [4, 5, 6]
+            }
+        ],*/
+        series: [
+                {
+                    name: '洛杉矶',
+                    data: [
+                        [1501689804077.358, 8.0],
+                        [1501689814177.358, 6.9],
+                        [1501689824277.358, 16.9],
+                        [1501689834377.358, 11.9]
+                    ]
+                },
+                {
+                    name: '南京',
+                    data: [
+                        [1501689804077.358, 18.0],
+                        [1501689814177.358, 16.9],
+                        [1501689824277.358, 6.9],
+                        [1501689834377.358, 21.9]
+                    ]
+                }
+            ],
+
+        // 鼠标移动上去的提示
+        tooltip: {
+            pointFormatter: function (e) {
+                // this代表当前数据（线）
+                var tpl = '<span style="color:' + this.series.color + '">6666</span> ' + this.series.name + ': <b>' + this.y + '个</b><br/>';
+                return tpl;
+            },
+            useHTML: true
+        },
+        //
+        plotOptions: {
+            //所有数据
+            series: {
+                //点
+                cursor: 'pointer',
+                events: {
+                    click: function (event) {
+                        // 点击某个指定点时，执行的事件
+                        console.log(this.name, event.point.x, event.point.y);
+                    }
+                }
+            }
+        },
+
+    });
+    // 加一条数据
+{#    chart.addSeries({name:'北京',data: [6,7,8]});#}
+
+    // 加一个点
+{#    chart.series[0].addPoint([19]);#}
+
+
+</script>
+</body>
+
+</html>
