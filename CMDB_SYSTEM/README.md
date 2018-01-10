@@ -77,7 +77,7 @@ urllib3==1.22
   * 自定义的数据显示
   * RBAC 权限管理
 
-
+<br>
 
 ### 2、<a id='2_2'>程序目录结构</a>
 
@@ -372,7 +372,7 @@ API_PLUGINS = {
 
 &emsp;&emsp;（3）服务器利用 Redis 维护一个已使用的key与其超时时间的字典，判断当前key是否再其中（限制key只能使用一次）。
 
-
+<br>
 
 **AES加密**（autoserver/server/lib/data_cipher.py）
 
@@ -394,13 +394,13 @@ for _ in range(add_bytes):
 # 解密后取值：result[0:-[result[-1]]]
 ````
 
-
+<br>
 
 #### 后台管理
 
 &emsp;&emsp;可定制的页面显示，通过对配置字典的修改，即可获得对应效果。
 
-
+<br>
 
 **前端显示配置详解**(autoserver/backend/page_config/)
 
@@ -430,13 +430,13 @@ for _ in range(add_bytes):
 '''
 ````
 
-
+<br>
 
 #### RBAC权限管理
 
 &emsp;&emsp;基于角色的权限访问控制及菜单栏的自动生成。
 
-
+<br>
 
 **数据库表**
 
@@ -512,7 +512,7 @@ for _ in range(add_bytes):
 |  3   |         action         |   Action表外键   | ForeignKey |  -   |    非空    |  -   |
 |  4   |          role          |    Role表外键    | ForeignKey |  -   |    非空    |  -   |
 
-
+<br>
 
 **配置说明**
 
@@ -552,7 +552,7 @@ RBAC_THEME = "default"
 # ############################## RBAC权限相关配置结束 ##############################
 ````
 
-
+<br>
 
 **登录初始化**
 
@@ -583,7 +583,7 @@ RBAC_MENU_PERMISSION_SESSION_KEY:
     }
 ````
 
-
+<br>
 
 **自定义中间件**
 
@@ -598,7 +598,7 @@ RBAC_MENU_PERMISSION_SESSION_KEY:
   * True: 匹配 md 参数
   * False: 最后返回错误信息
 
-
+<br>
 
 **菜单栏**
 
@@ -618,7 +618,7 @@ build_menu_tree_html
 - 对菜单数据作字符串格式化，递归生成对应标签
 ```
 
-
+<br>
 
 自定义扩展：
 
