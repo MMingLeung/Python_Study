@@ -13,8 +13,12 @@ class Base(metaclass=ABCMeta):
         raise NotImplementedError
 
     def post_asset(self, server_info):
+        res = requests.get(settings.API, headers={'OpenKey':auth()})
+        csrf = res.text
+        token = res.cookies.items()[0][1]
+        cookies = res.cookies.get_dict()
         data = encrypt(json.dumps(server_info))
-        requests.post(settings.API, data=data, headers={'OpenKey':auth()})
+        requests.post(settings.API, data=data, headers={'OpenKey':auth(), 'X-CSRFToken':token}, cookies=cookies)
         # 发送
         # body: json.dumps
         # headers = {'content-type':'application/JSON'}

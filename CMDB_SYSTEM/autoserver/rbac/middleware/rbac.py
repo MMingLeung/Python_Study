@@ -29,7 +29,6 @@ class RbacMiddleware(MiddlewareMixin):
 
         """当前URL和session中的权限进行匹配"""
         flag = False
-        print(permission_dict ,permission_dict)
         for pattern, code_list in permission_dict.items():
             upper_code_list = [item.upper() for item in code_list]
             print('upper_code_list',upper_code_list)

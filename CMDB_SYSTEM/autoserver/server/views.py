@@ -5,6 +5,7 @@ import hashlib
 import time
 import importlib
 from django.shortcuts import render, HttpResponse
+from django.template.context_processors import csrf
 from django.conf import settings
 from django.http import JsonResponse
 from rest_framework.views import APIView
@@ -25,11 +26,14 @@ def asset(request):
     if request.method == 'GET':
         # META包含请求所有信息
         key = request.META.get('HTTP_OPENKEY')
-        client_md5_key, client_ctime = key.split('|')
-        server_time = time.time()
+
 
         if not key:
             return HttpResponse('非法用户')
+
+        client_md5_key, client_ctime = key.split('|')
+        server_time = time.time()
+
         if server_time - float(client_ctime) > 10:
             return HttpResponse('超时')
 
@@ -49,9 +53,12 @@ def asset(request):
                 return HttpResponse('key已使用')
             else:
                 api_key_record[key] = float(client_ctime) + 10
-                return HttpResponse('关键信息')
+                csrf_token = csrf(request)
+                print(csrf_token['csrf_token'], type(str(csrf_token['csrf_token'])))
+                return HttpResponse(str(csrf_token['csrf_token']))
 
     elif request.method == 'POST':
+
         print(len(request.body))
         data_encipher = decipher(request.body)
         data = json.loads(data_encipher)

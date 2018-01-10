@@ -5,7 +5,7 @@ class User(models.Model):
     """
     用户表
     """
-    username = models.CharField(verbose_name='用户名', max_length=32)
+    username = models.CharField(verbose_name='用户名', max_length=32, unique=True)
     password = models.CharField(verbose_name='密码', max_length=64)
     email = models.EmailField(verbose_name='邮箱')
 
@@ -17,7 +17,7 @@ class Role(models.Model):
     """
     角色表
     """
-    caption = models.CharField(verbose_name='角色', max_length=32)
+    caption = models.CharField(verbose_name='角色', max_length=32, unique=True)
 
     def __str__(self):
         return self.caption

@@ -120,6 +120,7 @@ USE_L10N = True
 
 USE_TZ = True
 
+APPEND_SLASH=False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
@@ -129,10 +130,14 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
 
+# ################################### API 配置开始 ################################
+# API 验证 KEY
 AUTH_KEY = 'aaa'
 
+# AES 加密 KEY
 CIPHER_KEY = 'zqwrfdsazxcsdwqe'
 
+# API 入库插件路径
 API_PLUGINS = {
     'Disk':'server.plugins.disk.Disk',
     'Memory':'server.plugins.memory.Memory',
@@ -140,20 +145,18 @@ API_PLUGINS = {
     'Server':'server.plugins.server.Server',
     'Cpu':'server.plugins.cpu.Cpu',
 }
+# ################################### API 配置结束 ################################
 
-APPEND_SLASH=False
 
 # ############################## RBAC权限相关配置开始 ##############################
 # # 无需权限控制的URL
 RBAC_NO_AUTH_URL = [
     '/backend/login.html',
-    '/index.html',
     '/register.html',
     '/admin.*',
     '/rbac.*',
-    '/check_code/',
-    '/backend/index.html'
-    # '/backend/basic_info_json.html?condition=.*'
+    '/backend/index.html',
+    '/api*'
 ]
 
 # session中保存权限信息的Key
@@ -178,12 +181,3 @@ RBAC_MENU_PERMISSION_KEY = "rbac_menu_permission_key"
 # 菜单主题
 RBAC_THEME = "default"
 # ############################## RBAC权限相关配置结束 ##############################
-
-# ############################## CheckCode ##############################
-CHECK_CODE_SESSION_KEY = 'code'
-
-# ############################## MakePassword Salt ##############################
-MakePasswordSalt = "I'm some salt"
-
-# ############################## Session User Info ##############################
-SESSION_USER_INFO = 'session_user_info'
