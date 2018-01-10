@@ -21,7 +21,11 @@
 
 ### 1、环境
 
+
+
 #### Python: 3.5
+
+
 
 #### Packages: 
 
@@ -58,6 +62,10 @@ urllib3==1.22
 ## <a id='2'>系统详解</a>：
 
 ### 1、<a id='2_1'>架构</a>
+
+
+
+
 
 * 资产采集
   * 服务器本地执行采集命令
@@ -122,6 +130,8 @@ urllib3==1.22
 └── templates
 
 ````
+
+
 
 
 
@@ -205,6 +215,8 @@ AUTH_KEY = 'aaa'
 # cipher_key 必须16位
 CIPHER_KEY = 'zqwrfdsazxcsdwqe'
 ```
+
+
 
 
 
@@ -295,9 +307,13 @@ def __ssh(self, cmd):
 
 
 
+
+
 #### API
 
 &emsp;&emsp;包含数据入库、 API 验证、 AES 加密三个功能
+
+
 
 
 
@@ -318,6 +334,8 @@ API_PLUGINS = {
 
 
 
+
+
 &emsp;&emsp;硬盘入库逻辑：
 
 ````Python
@@ -331,6 +349,8 @@ API_PLUGINS = {
 # 更新
 # 循环 slot 列表，根据 slot 号获取一条新数据，根据server_obj(从视图函数中传入)获取旧数据(对象)，循环新数据（字典），通过反射形式从旧数据对象中获取对应的值并与新值对比，通过setattr设置，最后model_obj.save()
 ````
+
+
 
 
 
