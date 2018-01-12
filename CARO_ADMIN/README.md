@@ -169,7 +169,7 @@ service.site.reigster(Department)
 ````Python
 class YourModelNameBase(service.BaseCaro):
     '''
-    list_display: input the field's name of your model to make the table of  
+    list_display: Input the field's name of your model to make the table of  
                   display. 
                   besides, you can design functions and put its name into this
                   list.
@@ -192,7 +192,7 @@ class YourModelNameBase(service.BaseCaro):
 class YourModelNameBase(service.BaseCaro):
     '''
     Your could design multi-action function to deal with some process.
-    * this function depand on "checkbox".
+    * This function depand on "checkbox".
     
     action_list: [function's name, ]
     function.text: display on table's header
@@ -218,7 +218,18 @@ class YourModelNameBase(service.BaseCaro):
 ```python
 class YourModelNameBase(service.BaseCaro):
     '''
+	Create filter list functions on the web where you want to build.
 	
+	filter_list: A list which includes FilterOption's object.
+	
+	FilterOption: Encapsulates options and functionality for given field's name or 
+				  a function.
+				  args:
+				  	is_multi: Can or can't multiple choice
+				  	text_func: A fuction' name which Building in the field's model 
+				  		       class, return a string for html tag's attribution
+				 	val_func: A fuction' name which Building in the field's model 
+				  		       class, return a string for html tag's attribution
     '''
     def your_function_name(self, option, request):
         from caro_admin.caroadmin.utils.filter import FilterList
@@ -226,154 +237,63 @@ class YourModelNameBase(service.BaseCaro):
     return FilterList(option, queryset, request)
 
     filter_list = [
-        FilterOption('model_field_name', is_multi=False),
+        FilterOption('model_field_name', is_multi=False, text_func='xx', val_func= 'xxx'),
         FilterOption('model_field_name', is_multi=True),
         FilterOption(your_function_name, is_multi=False),
     ]
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-### 4、<a id='2_4'>服务端功能及原理</a>
-
 <br>
 
-#### 配置说明
+#### 代码详解
 
-&emsp;&emsp;详见 settings.py 中注释
-
-
-
-<br>
-
-#### API
-
-&emsp;&emsp;包含数据入库、 API 验证、 AES 加密三个功能
-
-
-
-<br>
-
-**数据入库**
-
-&emsp;&emsp;与采集资产的模式相同，从配置文件中读取插件的路径，以反射的形式调用入库的方法。
+1. 启动文件 caroadmin/apps.py
 
 ````python
-# settings.py
-API_PLUGINS = {
-    'Disk':'server.plugins.disk.Disk',
-    'Memory':'server.plugins.memory.Memory',
-    'Nic':'server.plugins.nic.Nic',
-    'Server':'server.plugins.server.Server',
-    'Cpu':'server.plugins.cpu.Cpu',
-}
+from django.apps import AppConfig
+
+class SupermattConfig(AppConfig):
+    name = 'caroadmin'
+
+    def ready(self):
+        super(SupermattConfig, self).ready()
+
+        from django.utils.module_loading import autodiscover_modules
+        '设置启动时执行的 python 文件名'
+        autodiscover_modules('caro')
 ````
-
-
-
-
-
-&emsp;&emsp;硬盘入库逻辑：
-
-````Python
-# /autoserver/server/plugins/disk.py
-'''
-1、通过新数据和旧数据，获取其 slot(槽位) 号
-2、交集：更新
-3、新与旧的差集：新增
-4、旧与新的差集：删除
-'''
-# 更新
-# 循环 slot 列表，根据 slot 号获取一条新数据，根据server_obj(从视图函数中传入)获取旧数据(对象)，循环新数据（字典），通过反射形式从旧数据对象中获取对应的值并与新值对比，通过setattr设置，最后model_obj.save()
-````
-
-
 
 <br>
 
-**API验证**
-
-&emsp;&emsp;为了防止数据被篡改，API接受数据先对请求进行一个验证。
-
-&emsp;&emsp;参考 tornado cookie 加密，客户端（被采集资产机器）使用 key 与时间戳拼接后进行 md5 加密，该密文与其中的时间戳拼接，放入请求头中发送。
-
-&emsp;&emsp;API服务端，获取之后进行三个步验证。
-
-&emsp;&emsp;（1）从请求头获取字符串，切分获得密文与时间戳，使用该时间戳与服务器当前时间判断是否超出超时时间（限制key的使用时间）。
-
-&emsp;&emsp;（2）使用服务器与客户端共同的key与客户端时间戳进行md5加密，判断是否与客户端的相同（判断客户端的时间是否被修改以及key正确与否）。
-
-&emsp;&emsp;（3）服务器利用 Redis 维护一个已使用的key与其超时时间的字典，判断当前key是否再其中（限制key只能使用一次）。
-
-<br>
-
-**AES加密**（autoserver/server/lib/data_cipher.py）
-
-&emsp;&emsp; API 验证中仍有漏洞，如果数据被抓包后以更快速度传输就有篡改隐患，为此给数据加密。
-
-&emsp;&emsp;使用 AES 加密，被加密数据长度必须是 16 的倍数。加密程序通过 bytesarray 类型，对原有数据增加16 或者 16与余数的差的<u>数量</u>，内容为<u>16 或者 16与余数的差</u>
+2. 注册 Model 类
 
 ````python
-# 例子
-tmp = len(bytearray('aaaaaaaaaaaaaa', encoding='utf-8'))
-if tmp == 16:
-    add_bytes = 16
-else:
-    tmp = tmp % 16
-    add_bytes = 16 - tmp
-for _ in range(add_bytes):
-    bytesarr_message.append(add_bytes)
-# 结果：result = b'aaaaaaaaaaaaa333'
-# 解密后取值：result[0:-[result[-1]]]
+service.site.reigster(Model_name)
 ````
 
 <br>
 
-#### 后台管理
+3. caroadmin/service.py 
 
-&emsp;&emsp;可定制的页面显示，通过对配置字典的修改，即可获得对应效果。
-
-<br>
-
-**前端显示配置详解**(autoserver/backend/page_config/)
-
-````python
-1、表格
-	table_config:
-    {'q': '数据库查询字段名',
-     'title': '表头中文',
-     'disable': '是否显示',
-     'text':
-         {
-             'tpl': '格式化的key',
-             'kwargs': {'key': '格式化的内容'} # @+字段：取值 @@+字段：取固定元组里的值
-         },
-     'attrs': {
-         'edit-enable': '能否编辑',
-         'edit-type': '编辑框input/select',
-         'global_key': '对应@@功能',
-         'origin': '原始值',
-         'name': '数据库查询字段名'
-     }
-     
-2、 搜索框
-     search_config： 
-    {'name': '数据库查询字段名', 'text': '中文名', 'search_type': '搜索框input/select', },
-    {'name': '数据库查询字段名', 'text': '中文名', 'search_type': '搜索框input/select', 'global_key': '取model中choices值/外键的key'},
-'''
 ````
 
-<br>
+````
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #### RBAC权限管理
 
@@ -600,5 +520,5 @@ tpl2 = """
     '''
 ````
 
-![](https://github.com/MMingLeung/Markdown-Picture/blob/master/rbac_menu_extend.png?raw=true)
+
 
