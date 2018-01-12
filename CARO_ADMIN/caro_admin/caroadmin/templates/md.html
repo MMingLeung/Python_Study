@@ -1,0 +1,23 @@
+<table class="table table-bordered" style="margin-top: 10px">
+    <thead>
+    <tr>
+        {% for item in header_list %}
+            <th>
+                {{ item }}
+            </th>
+        {% endfor %}
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for item in result_display %}
+        <tr>
+            {% for val in item %}
+                <td>
+                    {{ val }}
+                </td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

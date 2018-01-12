@@ -1,0 +1,6 @@
+<select name="action" class="form-control" style="width: 200px;display: inline-block">
+    {% for item in action_list %}
+        <option value="{{ item.0 }}">{{ item.1 }}</option>
+    {% endfor %}
+</select>
+<input type="submit" value="提交" class="btn btn-default">
