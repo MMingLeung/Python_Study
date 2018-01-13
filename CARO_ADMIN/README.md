@@ -1,3 +1,5 @@
+
+
 # 项目管理系统
 
 ## 简介：
@@ -13,7 +15,8 @@
   * [架构](#2_1)
   * [程序目录结构](#2_2)
   * [CURD 组件功能及原理](#2_3)
-  * [服务端功能及原理](#2_4)
+  * [项目管理系统](#2_4)
+  * [RBAC权限管理](#2_5)
 
   ​
 
@@ -245,7 +248,7 @@ class YourModelNameBase(service.BaseCaro):
 
 <br>
 
-#### 代码详解
+#### 代码解释
 
 1. 启动文件 caroadmin/apps.py
 
@@ -273,11 +276,183 @@ service.site.reigster(Model_name)
 
 <br>
 
-3. caroadmin/service.py 
+3. caro_admin/urls.py 
 
+````python
+from django.conf.urls import url
+from caroadmin import service
+
+
+# url 对应关系
+urlpatterns = [
+    url(r'test/', service.site.urls),
+]
 ````
 
-````
+<br>
+
+4. caroadmin/service.py 
+
+```python
+'''
+CaroSite: 封装一个 caroadmin app 实例对象，并绑定对应的路由系统中。通过 register 方法可以把 
+	      model 类注册到当前对象中，通过 get_urls 方法为 model 提供一系列视图函数。
+	      
+BaseCaro: 为 caroadmin 对象封装属性和方法。包括增删改查路由系统、视图函数、模板、自定制功能。
+'''    
+```
+
+<br>
+
+5. 路由系统的补充
+
+```python
+'''
+在 3 中注册到路由系统中，通过 urls 方法返回的是([url 对应关系], app_name, name_space).
+如下：
+	([
+	url(r'^test/', ([url(r'^login/$', self.login, name='login'),
+	url(r'^%s/%s/' % (app_label, model_name), include(basesupermatt_obj.urls))
+	# app_label=app01, model_name=usergroup
+	]
+	, app_name, name_space)
+	
+其中 include 方法返回一下结果：
+    	(
+    		[
+    		 url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
+        	 url(r'^add/$', self.add_view, name='%s_%s_add' % info), 
+        	 ....
+        	],
+        	 None, # app_name
+        	 None # name_space
+        )
+        
+总结: 一个 model 注册到 caroadmin 实例对象中，等于创建了增删改查4个路由系统对应关系。
+	 http://127.0.0.1/test/app_name/model_name --> changelist_view,
+	 http://127.0.0.1/test/app_name/model_name/add --> add_view,
+	 ....
+'''
+```
+
+<br>
+
+6. 视图函数 changelist_view
+
+```python
+# caroadmin/service.py 
+changelist_view(): 
+	根据用户定制，显示列表页面，由 ChangeList 类的负责封装显示所需的属性与方法。
+    
+ChangeList: 
+    封装了页码功能、数据列表、组合搜索条件、批量操作、显示列表功能。
+    
+FilterList 与 FilterOption: 
+    FilterOption 封装组合搜索相关的属性和方法,用于生成组合搜索前端代码的逻辑判断。
+    FilterList 根据 FilterOption 实例对象，通过 __iter__ 作为可迭代对象，生成具体前端代码。
+    
+```
+
+<br>
+
+### <a id='2_4'>4、项目管理系统</a>
+
+<br>
+
+&emsp;&emsp;本系统用于记录工程项目相关信息，配合 CURD 组件，信息化处理各项数据。
+
+<br>
+
+**数据库表**
+
+
+
+|  表名  | WorkSpace |      |         |      |          |      |
+| :--: | :-------: | :--: | :-----: | :--: | :------: | :--: |
+|  id  |    主键     |      |         |      |          |      |
+| 字段名称 |    序号     | 字段说明 |   类型    |  位数  |    属性    |  备注  |
+|  id  |     1     |  -   |   int   |  -   | 非空、唯一、自增 |  -   |
+| name |     2     | 办公区  | varchar |  64  |    非空    |  -   |
+
+
+
+|  表名  | Department  |        |         |      |          |      |
+| :--: | :---------: | :----: | :-----: | :--: | :------: | :--: |
+|  主键  |     id      |        |         |      |          |      |
+|  序号  |    字段名称     |  字段说明  |   类型    |  位数  |    属性    |  备注  |
+|  1   |     id      |   -    |   int   |  -   | 非空、唯一、自增 |  -   |
+|  2   |    name     |   部门   | varchar |  64  |    唯一    |  -   |
+|  3   | description | 部门情况描述 |  text   |  -   |    -     |  -   |
+|  4   |    floor    | 部门所在楼层 |   int   |  -   |    -     |  -   |
+
+
+
+|  表名  | ProjectList |                       |              |      |          |      |
+| :--: | :---------: | :-------------------: | :----------: | :--: | :------: | :--: |
+|  主键  |     id      |                       |              |      |          |      |
+|  序号  |    字段名称     |         字段说明          |      类型      |  位数  |    属性    |  备注  |
+|  1   |     id      |           -           |     int      |  -   | 非空、唯一、自增 |  -   |
+|  2   | work_space  |         办公区外键         |  foreignKey  |  -   |    -     |  -   |
+|  3   | department  |         部门外键          |  foreignKey  |  -   |    -     |  -   |
+|  4   | class_type  |        项目类型选择         | smallInteger |  -   |    -     |  -   |
+|  5   | status_type |        项目状态选择         | smallInteger |  -   |    -     |  -   |
+|  6   |  duration   |          工期           | IntegerField |  -   |    -     | 单位：天 |
+|  7   |    price    |          费用           |    float     |  -   |    -     |  -   |
+|  8   | start_data  |         开始日期          |     date     |  -   |    -     |  -   |
+|  9   |  end_data   |         结束日期          |     date     |  -   |   可为空    |  -   |
+|  10  |    staff    | project_list_staff 外键 |  foreignKey  |  -   |    -     | 多对多  |
+
+
+
+|  表名  | UserProfile |           |            |      |          |       |
+| :--: | :---------: | :-------: | :--------: | :--: | :------: | :---: |
+|  主键  |     id      |           |            |      |          |       |
+|  序号  |    字段名称     |   字段说明    |     类型     |  位数  |    属性    |  备注   |
+|  1   |     id      |     -     |    int     |  -   | 非空、唯一、自增 |   -   |
+|  2   |  name_obj   | RBAC用户表外键 | foreignKey |  -   |    唯一    | 一对一关联 |
+|  3   |    name     |    用户名    |  varchar   |  32  |    -     |   -   |
+|  4   |  workspace  |   办公区外键   | foreignKey |  -   |    -     |   -   |
+|  5   |    memo     |    备注     |    text    |  -   |    -     |   -   |
+|  6   | data_joined |   加入时间    |    date    |  -   |    -     |   -   |
+
+
+
+|  表名  | ProjectRecord  |                |            |      |          |                |
+| :--: | :------------: | :------------: | :--------: | :--: | :------: | :------------: |
+|  主键  |       id       |                |            |      |          |                |
+|  序号  |      字段名称      |      字段说明      |     类型     |  位数  |    属性    |       备注       |
+|  1   |       id       |       -        |    int     |  -   | 非空、唯一、自增 |       -        |
+|  2   |    project     | ProjectList 外键 | foreignKey |  -   |    唯一    | 与 day_num 联合唯一 |
+|  3   |    day_num     |       天数       |    int     |  -   |    -     |    项目进行到第几天    |
+|  4   |      date      |     办公区外键      |    date    |  -   |    -     |     工程开始日期     |
+|  5   |    engineer    | UserProfile外键  | foreignKey |  -   |    -     |       -        |
+|  6   | project_detail |      项目详细      |    text    |  -   |    -     |       -        |
+
+
+
+|  表名  |  Reporter  |              |            |      |          |          |
+| :--: | :--------: | :----------: | :--------: | :--: | :------: | :------: |
+|  主键  |     id     |              |            |      |          |          |
+|  序号  |    字段名称    |     字段说明     |     类型     |  位数  |    属性    |    备注    |
+|  1   |     id     |      -       |    int     |  -   | 非空、唯一、自增 |    -     |
+|  2   |   phone    |     电话号码     |  varchar   |  64  |    -     |    -     |
+|  3   |    name    |      姓名      |  varchar   |  64  |    -     | 项目/报修发起人 |
+|  4   |    sex     |      性别      |  varchar   |  32  |    -     |  工程开始日期  |
+|  5   | department | Department外键 | foreignKey |  -   |    -     | 发起人所在部门  |
+|  6   |   notes    |     联系记录     |    text    |  -   |    -     |    -     |
+
+
+
+|  表名  | ReporterFollowerUp |               |            |      |                    |              |
+| :--: | :----------------: | :-----------: | :--------: | :--: | :----------------: | :----------: |
+|  主键  |         id         |               |            |      |                    |              |
+|  序号  |        字段名称        |     字段说明      |     类型     |  位数  |         属性         |      备注      |
+|  1   |         id         |       -       |    int     |  -   | 非空、          唯一、自增 |      -       |
+|  2   |      reporter      |  Reporter外键   | foreignKey |  -   |         -          |      -       |
+|  3   |        note        |      记录       |    text    |  -   |         -          |      -       |
+|  4   |       status       |      状态       |    int     |  -   |         -          | 选项见models.py |
+|  5   |     consultant     | UserProfile外键 | foreignKey |  -   |         -          |    跟进者外键     |
+|  6   |        date        |     创建日期      |    date    |  -   |         -          |      -       |
 
 
 
@@ -287,15 +462,7 @@ service.site.reigster(Model_name)
 
 
 
-
-
-
-
-
-
-
-
-#### RBAC权限管理
+### <a id='2_5'>5、RBAC权限管理</a>
 
 &emsp;&emsp;基于角色的权限访问控制及菜单栏的自动生成。
 
@@ -348,7 +515,7 @@ service.site.reigster(Model_name)
 |  主键  |     id     |        |            |      |          |      |
 |  序号  |    字段名称    |  字段说明  |     类型     |  位数  |    属性    |  备注  |
 |  1   |     Id     |   -    |    int     |  -   | 非空、唯一、自增 |  -   |
-|  2   |  caption   |  菜单名称  |  varchar   |  32  |    非空    |  -   |
+|  2   |  caption   |  权限名称  |  varchar   |  32  |    非空    |  -   |
 |  3   |    url     | url正则  |  varchar   | 128  |    非空    |  -   |
 |  4   |    menu    | Menu外键 | ForeignKey |  -   |    非空    |  -   |
 
@@ -356,24 +523,15 @@ service.site.reigster(Model_name)
 
 
 
-|  表名  | Action  |      |         |      |          |      |
-| :--: | :-----: | :--: | :-----: | :--: | :------: | :--: |
-|  主键  |   id    |      |         |      |          |      |
-|  序号  |  字段名称   | 字段说明 |   类型    |  位数  |    属性    |  备注  |
-|  1   |   id    |  -   |   int   |  -   | 非空、唯一、自增 |  -   |
-|  2   | caption | 菜单名称 | varchar |  32  |    非空    |  -   |
-|  3   |  code   | 请求方式 | varchar |  32  |    非空    |  -   |
+|  表名  | Role2Permission |                           |            |      |          |      |
+| :--: | :-------------: | :-----------------------: | :--------: | :--: | :------: | :--: |
+|  主键  |       id        |                           |            |      |          |      |
+|  序号  |      字段名称       |           字段说明            |     类型     |  位数  |    属性    |  备注  |
+|  1   |       id        |             -             |    int     |  -   | 非空、唯一、自增 |  -   |
+|  2   |      role       |          Role表外键          | ForeignKey |  -   |    非空    |  -   |
+|  3   |   permission    | Permission            表外键 | ForeignKey |  -   |    非空    |  -   |
 
 
-
-|  表名  | Permission2Action2Role |               |            |      |          |      |
-| :--: | :--------------------: | :-----------: | :--------: | :--: | :------: | :--: |
-|  主键  |           id           |               |            |      |          |      |
-|  序号  |          字段名称          |     字段说明      |     类型     |  位数  |    属性    |  备注  |
-|  1   |           id           |       -       |    int     |  -   | 非空、唯一、自增 |  -   |
-|  2   |       permission       | Permission表外键 | ForeignKey |  -   |    非空    |  -   |
-|  3   |         action         |   Action表外键   | ForeignKey |  -   |    非空    |  -   |
-|  4   |          role          |    Role表外键    | ForeignKey |  -   |    非空    |  -   |
 
 <br>
 
@@ -424,12 +582,12 @@ RBAC_THEME = "default"
 ````python
 Session 中保存：
 RBAC_PERMISSION_SESSION_KEY: user_permission_dict
-	user_permission_dict: {'permission__url':['GET', 'POST', ...]}
+	permission_url_list: ['xxx/xxx/', 'xxx/xxx/add', 'xxx/xxx/change/']
 	
-RBAC_MENU_PERMISSION_SESSION_KEY: 
+RBAC_PERMISSION_MENU_DICT_SESSION_KEY: 
 	{
-      RBAC_MENU_KEY: menu_list,
-	  RBAC_MENU_PERMISSION_KEY: menu_permission_list
+      RBAC_MENU_LIST_SESSION_KEY: menu_list,
+	  RBAC_PERMISSION_LIST_SESSION_KEY: menu_permission_list
 	}
 	
 	menu_list: {
@@ -456,7 +614,7 @@ RBAC_MENU_PERMISSION_SESSION_KEY:
 
 * 先判断是否无权限访问的 URL 
 * 获取当前用户的 RBAC_PERMISSION_SESSION_KEY，如果没有则返回相应信息
-* 循环上述字典，把 code_list 转换为大写形式 [code.upper()  for code in code_list]
+* 构建用于正则匹配的 pattern
 * 先判断当前 url 和字典中的 url 正则是否匹配
   * True: 匹配 md 参数
   * False: 最后返回错误信息
@@ -467,9 +625,9 @@ RBAC_MENU_PERMISSION_SESSION_KEY:
 
 &emsp;&emsp;自动生成左侧菜单栏。
 
-所需参数 RBAC_MENU_PERMISSION_SESSION_KEY:
+所需参数 RBAC_PERMISSION_MENU_DICT_SESSION_KEY:
 
- {RBAC_MENU_KEY: menu_list, RBAC_MENU_PERMISSION_KEY: menu_permission_list}
+ {RBAC_MENU_LIST_SESSION_KEY: menu_list, RBAC_PERMISSION_LIST_SESSION_KEY: menu_permission_list}
 
 ```
 process_menu_tree_data
