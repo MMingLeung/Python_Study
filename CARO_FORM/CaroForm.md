@@ -46,7 +46,7 @@ tornado==4.5.3
 
 ------
 
-<u>**整体效果**：</u>
+**=========== 整体效果 ==========**
 
 ![](https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/form_initialize_index.png?raw=true)
 
@@ -54,7 +54,7 @@ tornado==4.5.3
 
 ------
 
-<u>**默认值**：</u>
+**=========== 默认值 ===========**
 
 ![](https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/default_value.png?raw=true)
 
@@ -64,7 +64,7 @@ tornado==4.5.3
 
 ------
 
-**<u>错误提示：</u>**
+**=========== 错误提示 ===========**
 
 1. 默认错误提示
 
