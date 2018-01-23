@@ -1,4 +1,4 @@
-# 自定义Form 组件
+# 自定义 Form 组件
 
 ## 简介：
 
@@ -43,15 +43,15 @@ tornado==4.5.3
 
 **整体效果**：
 
-![https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/form_initialize_index.png?raw=true]()
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/form_initialize_index.png?raw=true)
 
 <br>
 
 **默认值**：
 
-![https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/default_value.png?raw=true]()
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/default_value.png?raw=true)
 
-![https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/multi_select_default.png?raw=true]()
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/multi_select_default.png?raw=true)
 
 <br>
 
@@ -59,11 +59,11 @@ tornado==4.5.3
 
 1. 默认错误提示
 
-![https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/origin_error_msg.png?raw=true]()
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/origin_error_msg.png?raw=true)
 
 2. 自定义错误提示
 
-![https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/customize_error_msg.png?raw=true]()
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/form_initial/customize_error_msg.png?raw=true)
 
 
 
