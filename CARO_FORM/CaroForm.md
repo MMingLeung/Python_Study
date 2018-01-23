@@ -98,7 +98,7 @@ from CaroForm3.Form import BaseForm
 
 &emsp;&emsp;本例子中定义了属性（需要验证的字段名称同时也是 html 标签中的 name 属性）、自定义错误信息、多选的选择及默认值。
 
-​	**更多参数解释：[参数详解](#9)**
+​	**更多参数解释：[参数详解](#2_2)**
 
 ````python
 # 例子：
@@ -240,7 +240,130 @@ EmailField(
   	'max_length':'邮箱长度超出限制',
     'min_length':'邮箱长度必须大于8位',
   })
+````
+
+<br>
+
+**Form**
+
+````Python
+# ################################# Form 的使用 #################################
+# 综合上述插件，自定义 Form 类
+class MyForm(BaseForm):
+    username = CharField(error={'required': '不能为空'})
+    password = CharField(error={'required': '不能为空'})
+    gender = CharField(widget=SingleSelectBox(
+        select_value_list=[
+            {'text': '男', 'value': '1'},
+            {'text': '女', 'value': '2'},
+        ]
+    ))
+    subject = StringListField(
+        widget=MultiCheckBox(
+            text_value_list=[
+                {'text': '语文', 'value': '1'},
+                {'text': '数学', 'value': '2'},
+                {'text': '英语', 'value': '3'},
+                {'text': '地理', 'value': '4'},
+            ],
+            check_value_list=['1', '2']
+        ))
+    hobby = CharField(
+        widget=MultiSelectBox(
+            select_value_list=[
+                {'text':'C 语言','value':'1'},
+                {'text':'C++ 语言','value':'2'},
+                {'text':'C# 语言','value':'3'},
+                {'text':'Python 语言','value':'4'},
+                {'text':'Java 语言','value':'5'},
+            ],
+            selected_value_list=['4',]
+        )
+    )
+
+# ################################# 嵌入 Tornado #################################
+# Tornado 部分代码
+class LoginController(tornado.web.RequestHandler):
+    def get(self):
+      	# 实例化自定义的 form 类
+        form = MyForm(self)
+        
+        # 动态赋予默认值操作
+        form.initialize_field_value({'username': 'initialize_username'})
+        
+        # 传到前端
+        self.render('login.html', msg='', form=form)
+
+    def post(self, *args, **kwargs):
+        form = LoginForm(self)
+        # 验输入段合法性
+        if form.is_valid():
+            print('合法')
+        else:
+          	print('不合法')
+            # 传入 form 使页面显示错误信息
+            self.render('login.html', msg='', form=form)
+````
 
 
+
+<br>
+
+````Html
+// 前端部分代码
+<form method="POST">
+
+    <div>
+        <h3>用户名</h3>
+        <div>
+            {% raw form.username %}
+        </div>
+
+        <div>
+            错误信息：{% raw form.error_dict.get('username', '') %}
+        </div>
+
+    </div>
+    <div>
+        <h3>密码</h3>
+        <div>
+            {% raw form.password %}
+        </div>
+        <div>
+            错误信息：{% raw form.error_dict.get('password', '') %}
+        </div>
+
+    </div>
+    <div>
+        <h3>性别</h3>
+        <div>
+            {% raw form.gender %}
+        </div>
+        <div>
+            错误信息：{% raw form.error_dict.get('gender', '') %}
+        </div>
+
+    </div>
+        <div>
+            <h3>科目</h3>
+        <div>
+            {% raw form.subject %}
+        </div>
+        <div>
+            错误信息：{% raw form.error_dict.get('subject', '') %}
+        </div>
+
+    </div>
+        <div>
+            <h3>爱好(多选)</h3>
+        <div>
+            {% raw form.hobby %}
+        </div>
+        <div>
+            错误信息：{% raw form.error_dict.get('hobby', '') %}
+        </div>
+    </div>
+    <input type="submit">{{ msg }}
+</form>
 ````
 
