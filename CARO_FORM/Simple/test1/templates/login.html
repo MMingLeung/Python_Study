@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{{ static_url('test.css') }}">
+    <style>
+        div, input, select{
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>登录</h1>
+{% raw xsrf_form_html() %}
+
+
+<form method="POST">
+
+    <div>
+        <h3>用户名</h3>
+        <div>
+            {% raw form.username %}
+        </div>
+
+        <div>
+            错误信息：{% raw form.error_dict.get('username', '') %}
+        </div>
+
+    </div>
+    <div>
+        <h3>密码</h3>
+        <div>
+            {% raw form.password %}
+        </div>
+        <div>
+            错误信息：{% raw form.error_dict.get('password', '') %}
+        </div>
+
+    </div>
+    <div>
+        <h3>性别</h3>
+        <div>
+            {% raw form.gender %}
+        </div>
+        <div>
+            错误信息：{% raw form.error_dict.get('gender', '') %}
+        </div>
+
+
+    </div>
+        <div>
+            <h3>科目</h3>
+        <div>
+            {% raw form.subject %}
+        </div>
+        <div>
+            错误信息：{% raw form.error_dict.get('subject', '') %}
+        </div>
+
+
+    </div>
+
+        <div>
+            <h3>爱好(多选)</h3>
+        <div>
+            {% raw form.hobby %}
+        </div>
+        <div>
+            错误信息：{% raw form.error_dict.get('hobby', '') %}
+        </div>
+
+
+    </div>
+
+    <input type="submit">{{ msg }}
+</form>
+</body>
+</html>

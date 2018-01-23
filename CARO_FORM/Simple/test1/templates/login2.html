@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{{ static_url('test.css') }}">
+</head>
+<body>
+<h1>登录</h1>
+{% raw xsrf_form_html() %}
+
+
+<form method="POST">
+    <!--<input type="text" placeholder="账号" name="username">-->
+    <!--<input type="password" placeholder="密码" name="password">-->
+    <input type="submit">{{ msg }}
+
+    {% raw form.username %}
+    {% raw form.error_dict.get('username', '') %}
+
+    {% raw form.password %}
+    {% raw form.error_dict.get('password', '') %}
+
+    {% raw form.email %}
+    {% raw form.error_dict.get('email', '') %}
+
+    {% raw form.a %}
+    {% raw form.error_dict.get('a', '') %}
+
+    {% raw form.b %}
+    {% raw form.error_dict.get('b', '') %}
+
+
+
+    <!--{{ form.username }}-->
+    <!--{{ form.password }}-->
+    <!--{{ form.email }}-->
+</form>
+</body>
+</html>
