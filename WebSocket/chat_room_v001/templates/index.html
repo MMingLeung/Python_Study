@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+</head>
+<body>
+<div>
+    <input type="text" placeholder="请输入类容" id="msg">
+    <input type="button" value="发送" onclick="sendMsg()">
+    <input type="button" value="断开连接" onclick="closeConn()">
+</div>
+<div id="container" style="border: solid 1px #dddddd; margin: 10px">
+
+</div>
+</body>
+<script src="/static/jquery-1.12.4.js"></script>
+<script>
+    $(function () {
+        wsSocket.start()
+    });
+
+    var wsSocket = {
+        socket: null,
+        uid: null,
+        start: function () {
+            var url = "ws://127.0.0.1:8080/chat";
+            wsSocket.socket = new WebSocket(url);
+            console.log(wsSocket.socket);
+            // 接收不到消息？
+            wsSocket.socket.onmessage = function (event) {
+                console.log(event);
+                if (wsSocket.uid){
+                    console.log(wsSocket.uid);
+                    wsSocket.showMsg(event.data)
+                }else {
+                    console.log(111);
+                    console.log(event.data);
+                    wsSocket.uid = event.data
+                }
+            }
+        },
+        showMsg: function (result) {
+            $('#container').append(result)
+        }
+    };
+
+    function sendMsg() {
+        var content = {
+            uid: wsSocket.uid,
+            message: $('#msg').val()
+        };
+        wsSocket.socket.send(JSON.stringify(content))
+    }
+
+    function closeConn() {
+        var closeMsg = document.createElement('div');
+        $(closeMsg).text('关闭连接');
+        $('#container').append(closeMsg);
+        wsSocket.socket.close()
+    }
+</script>
+</html>
