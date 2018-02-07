@@ -58,23 +58,26 @@
         uname: null,
         start: function (nid, name, myNid, myName, chatType) {
             var url;
+            // 判断一对一 or 群聊
             if (chatType == 0) {
                 url = "ws://127.0.0.1:8080/chat_one2one?nid=" + nid + "&name=" + name + '&mynid=' + myNid + '&myname=' + myName;
             } else {
                 url = "ws://127.0.0.1:8080/chat_group?gid=" + nid + "&gname=" + name + '&mynid=' + myNid + '&myname=' + myName;
             }
             wsSocket.socket = new WebSocket(url);
-            // 接收不到消息？
             wsSocket.socket.onmessage = function (event) {
                 if (wsSocket.uid && wsSocket.uname) {
+                    // 从第二条消息开始是聊天内容
                     wsSocket.showMsg(event.data);
                 } else {
+                    // 接收的第一条消息
                     var recv = event.data.split(',');
                     wsSocket.uid = recv[0];
                     wsSocket.uname = recv[1];
                 }
             }
         },
+        // 显示消息
         showMsg: function (result) {
             $('#container').append(result)
         }

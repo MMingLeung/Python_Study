@@ -3,7 +3,6 @@
 '''
 Handlers for chating both one to one and group
 '''
-import uuid
 import json
 import tornado.websocket
 
