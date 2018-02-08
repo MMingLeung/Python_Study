@@ -18,7 +18,9 @@ if __name__ == '__main__':
     
 ````
 
-Flask可以传入的参数
+<br>
+
+Flask可以传入的参数：
 
 ````
 static_path=None, # 停用
@@ -30,11 +32,9 @@ instance_relative_config=False, # 去上面路径找配置文件
 root_path=None # 根目录， 如果上面是False就去根目录找配置文件
 ````
 
-
+<br>
 
 ## 二、配置文件
-
-通过app.config可以知道是一个make_config函数的对象，make_config返回的是config_class的对象，而config_class = Config，最后的Config继承字典类型，可以得知配置就是一个字典。
 
 ````python
 default_config = ImmutableDict({
@@ -68,6 +68,8 @@ default_config = ImmutableDict({
         'TEMPLATES_AUTO_RELOAD':                None,
     })
 ````
+
+<br>
 
 ### 1、设置配置文件的方法
 
@@ -104,7 +106,7 @@ class TestingConfig(Config):
 
 ````
 
-
+<br>
 
 ## 三、路由系统
 
@@ -122,7 +124,7 @@ class TestingConfig(Config):
 @app.add_url_rule('/', view_func='函数名', endpoint='反向生成的url名字', methods=['GET', 'POST'])
 ````
 
-
+<br>
 
 ### 2、路由系统中的url参数传递
 
@@ -140,13 +142,9 @@ DEFAULT_CONVERTERS = {
 
 ````
 
+<br>
+
 ### 2.1、扩展支持正则表达式
-
-进入app.route查看源码，通过add_url_rule函数，
-
-发现rule = self.url_rule_class(rule, methods=methods, **options)
-
-url_rule_class就是Rule类，包含很多继承BaseConverter的XXXConverter函数，也就是通过上面的配置以及这一类函数完成参数匹配。
 
 ````Python
 from werkzeug.routing import BaseConverter
@@ -183,7 +181,7 @@ def hello_world(nid):
     return 'Hello World!'
 ````
 
-
+<br>
 
 ### 3、反向生成URL
 
@@ -197,7 +195,7 @@ from flask import url_for
      return 'Hello World!'
 ````
 
-
+<br>
 
 ## 四、视图函数
 
@@ -224,7 +222,7 @@ class IndexView(views.View):
 app.add_url_rule('/indexview', view_func=IndexView.as_view(name='indexview'))
 ````
 
-
+<br>
 
 #### 2、方法2 继承view.MethodView
 
@@ -241,7 +239,7 @@ class IndexView(views.MethodView):
 app.add_url_rule('/indexview', view_func=IndexView.as_view(name='indexview'))
 ````
 
-
+<br>
 
 ## 五、模板
 
@@ -259,13 +257,17 @@ def test_func():
 # 前端 {{ func()|safe }}
 `````
 
-
+<br>
 
 ## 六、Session
 
 在请求中储存用户信息
 
+<br>
+
 ### 1、使用自带Session
+
+<br>
 
 ````
 from flask import Flask, views, render_template, session
@@ -282,44 +284,29 @@ def hello_world(id):
 app.secret_key = 'session'
 ````
 
-
+<br>
 
 ### 2、自定义Session
 
-flask的session是通过flask.sessions.SecureCookieSessionInterface里面的open_session和save_session实现的。
+<br>
 
-该SecureCookieSessionInterface继承SessionInterface，进入找到session_class = SecureCookieSession，最后发现SecureCookieSession继承Dict以及SessionMixin
+Session 处理流程：
 
+1. 请求过来，通过路由系统找到匹配的视图函数
+2. 在视图函数中对 session 进行操作
+3. 执行 SessionInterface 中的 open_session 方法，执行以下操作
+   1. 获取 sid(也称 session_id  cookie)
+   2. 根据 sid 在 session 中获取响应的值
+   3. 封装 sid 和获取的值到 Session 对象中
+   4. 如果上述其中不能获取或无法经过签名验证则返回只含 sid 的 Session 对象
+4. 返回用户之前，执行 SessionInterface 中的 save_session 方法
+   1. 获取响应所需的参数
+   2. 获取 Session 对象中键值对部分，并序列化放入内存 or Redis 中
+   3. 回写 cookie 到响应对象中
 
-
-请求 —> 执行open_session 解密—> views 获取session（在内存中） —> 执行save_session 加密
-
-
-
-改造：减少对redis ／ memcahe操作
-
-open_session:
-
-1.请求 —> 
-
-2.执行open_session 查看是否有session_id，如果没有生成一个—>
-
-3.如有就解密，无法解密就重新生成。能解密则根据这个随机字符串在redis/内存中获取对应的字典并且json.loads返回，用户就能够在视图函数中使用该session中的值
-
-
-
- save_session:
-
-1.用户使用完session后传入，进行json.dumps操作—>
-
-2.放到内存/redis中 —>
-
-3.对session.sid签名发送给浏览器
-
-
+<br>
 
 ````Python
-# 先从写SecureCookieSession
 class MySession(dict, SessionMixin):
   	'''
   	initial：用于需要保存信息，字典格式
@@ -414,28 +401,27 @@ class MySessionInterface(SessionInterface):
 
 让程序结构更加清晰
 
-
-
-手动创建类似蓝图的功能
-
-/—run.py
-
-/— project/
-
-​	|— views/
-
-​		|— account.py
-
-​	|— \_\_init\_\_.py
+<br>
 
 ````python
-# run.py
+'''
+手动创建类似蓝图的功能
+
+目录结构：
+/—run.py
+/— project/
+		|— views/
+		|— account.py
+	|— __init__.py
+'''
+
+# ##################### run.py #####################
 from project1 import app # 1.导入__init__.py所有代码
 
 if __name__ == '__main__':
     app.run() 
     
-# __init__.py
+# ##################### __init__.py #####################
 from flask import Flask
 
 app = Flask(__name__)
@@ -444,7 +430,7 @@ app = Flask(__name__)
 from .views import account    
     
     
-# account.py
+# ##################### account.py #####################
 from flask import render_template
 from .. import app
 
@@ -457,31 +443,36 @@ def login():
 
 
 
+<br>
+
+````Python
+'''
 蓝图
-
-/—run.py
-
+/— run.py
 /— project/
+	|— views/
+		|— account.py
+	|— __init__.py
+'''
+# ##################### run.py #####################
+from project import app
 
-​	|— views/
 
-​		|— account.py
+if __name__ == '__main__':
+  app.run()
 
-​	|— \_\_init\_\_.py
-
-````
-# #### __init__.py ####
+# ##################### __init__.py #####################
 from flask import Flask
 
-app = Flask(__name__)
 
+app = Flask(__name__)
 # 注册蓝图
 from .views.account import account
 app.register_blueprint(account)
 
-
-# #### account.py ####
+# ##################### account.py #####################
 from flask import render_template, Blueprint
+
 
 # 创建蓝图
 # url_prefix 前缀,template_folder 模版文件夹, static_folder 静态文件夹
