@@ -1,4 +1,4 @@
-# 基于 WebSocket 的聊天室
+# 基于 WebSocket 聊天室增强版
 
 ## 简介：
 
@@ -20,6 +20,7 @@
   - [程序目录](#2_1)
   - [一对一聊天](#2_2)
   - [群聊](#2_3)
+- [WebSocket 原理](https://github.com/MMingLeung/Python_Study/tree/master/WebSocket)
 
 
 
@@ -103,7 +104,11 @@ user_E 123
 
 ![](https://github.com/MMingLeung/Markdown-Picture/blob/master/chat_room/group2.png?raw=true)
 
+<br>
 
+#### 群聊禁言：
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/chat_room/no_talking.png?raw=true)
 
 <br>
 
@@ -143,7 +148,10 @@ chat_room_v001/
 
 <br>
 
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/chat_room/one2one_process.png?raw=true)
+
+<br>
+
 ### 3、<a id='2_3'>群聊</a>
 
-
-
+&emsp;&emsp;与一对一聊天类似，不同的是根据组信息对成员做信息推送。
