@@ -15,6 +15,8 @@
   * [服务端代码解释](#2_3)
   * [客户端代码解释](#2_4)
 
+* [RPC模式详细](https://github.com/MMingLeung/Python_Study/tree/master/RabbitMQ)
+
   ​
 
 ## <a id='1'>快速使用</a>：
@@ -76,9 +78,9 @@ pika==0.11.2
 
 <br>
 
-服务端：发送命令，结果命令的结果 (/server)
+服务端：发送命令，接收命令的结果
 
-客户端：接收命令，执行命令，返回结果 (client.py)
+客户端：接收命令，执行命令，返回结果
 
 <br>
 
@@ -119,7 +121,32 @@ client.py
 
 <br>
 
+````
+/bin/run.py
+# 设置配置文件路径至环境变量
+# 程序启动入口
+````
 
+<br>
+
+````
+/config/settings.py
+# 配置文件
+
+/config/conf.py
+# 从环境变量中获取配置文件路径，根据路径导入配置文件，把配置保存在对象的属性中
+# 使用时，只需要导入 conf.py 中 settings （单例模式）获取配置
+````
+
+<br>
+
+````
+/src/__init__.py
+# 程序主逻辑，根据用户输入，做相关操作（向队列发送消息、查询命令结果、打印历史命令、退出）
+
+/src/my_rpc.py
+# RabbitMQ RPC 模式
+````
 
 <br>
 
@@ -127,7 +154,9 @@ client.py
 
 <br>
 
-
+````
+client.py
+````
 
 <br>
 
