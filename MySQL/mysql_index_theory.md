@@ -175,7 +175,7 @@ $$
 
 <br>
 
-### MyISAM索引的实现
+### MyISAM 索引的实现
 
 &emsp;&emsp;MyISAM 使用 B+Tree作为索引的结构，叶子结点 data 区域存放数据的地址，是一种非聚类索引。
 
@@ -195,13 +195,13 @@ $$
 
 ### InnoDB 索引实现
 
-&emsp;&emsp;数据文件就是索引本身，叶子结点记录完成的数据，是一种聚集索引。
+&emsp;&emsp;数据文件就是索引本身，叶子结点记录完整的数据，是一种聚集索引。
 
 > 1、必须有主键
 >
 > 2、data 区域保存的是主键的值，而不是地址
 >
-> 索引检索过程：查询根据某个人名的记录，先从辅助索引中获取主键的值，通过主索引根据主键获取记录。
+> 索引检索过程：查询某个人名的记录，先从辅助索引中获取主键的值，通过主索引找到主键获取记录。
 >
 > 
 >
@@ -218,3 +218,165 @@ $$
 ![](http://blog.codinglabs.org/uploads/pictures/theory-of-mysql-index/11.png)
 
 <br>
+
+## 索引使用策略及优化
+
+&emsp;&emsp;MySQL 的优化主要分为结构优化和查询优化，高性能索引属于结构优化。
+
+&emsp;&emsp;利用官方 emplyees 数据库进行测试。[下载地址](https://github.com/datacharmer/test_db)
+
+<br>
+
+### 最左前缀原理与优化
+
+#### 1、全列匹配
+
+&emsp;&emsp;对所有索引列进行精确匹配（"=" or "IN"），可以完全命中索引（key_len）。
+
+```
+EXPLAIN SELECT * FROM titles WHERE emp_no="10004" AND title="Senior Engineer" AND from_date="9999-01-01"
+```
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/1.png?raw=true)
+
+<br>
+
+#### 2、最左前缀匹配
+
+&emsp;&emsp;从索引左边第一个开始对某几个索引进行精确匹配，可以命中索引。
+
+```
+EXPLAIN SELECT * FROM titles WHERE emp_no="10004" AND title="Senior Engineer";
+```
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/2.png?raw=true)
+
+<br>
+
+#### 3、最左前缀匹配但中间一个或几个索引不提供
+
+&emsp;&emsp;只能命中第一个索引。
+
+```
+EXPLAIN SELECT * FROM titles WHERE emp_no="10004" AND from_date='1995-12-01';
+```
+
+>如果中间索引值不多，可以使用 "IN (…)" 补充，以达道命中索引的目的。
+>
+>如果值相当多，需建立辅助索引。
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/3.png?raw=true)
+
+<br>
+
+#### 4、查询条件没有制定索引第一列
+
+&emsp;&emsp;完全无法命中索引。
+
+```
+EXPLAIN SELECT * FROM titles WHERE title="Engineer" AND from_date='1995-12-01';
+```
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/4.png?raw=true)
+
+<br>
+
+#### 5、匹配某列的前缀字符串
+
+&emsp;&emsp;使用 "like" 只要参数中 "%" 不在开头就可以命中索引。
+
+```
+EXPLAIN SELECT * FROM titles WHERE emp_no="10004" AND title like 'E%';
+```
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/5.png?raw=true)
+
+<br>
+
+#### 6、范围查询
+
+&emsp;&emsp;只有左前缀第一索引可以命中。（"BETWEEN AND" 相当于 "IN"属于精确匹配，不属于范围匹配）
+
+```
+EXPLAIN SELECT * FROM titles WHERE emp_no > 12302 AND title='Engineer';
+```
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/6.png?raw=true)
+
+<br>
+
+##### 7、查询条件中含有函数或表达式
+
+&emsp;&emsp;全部无法命中。
+
+```
+EXPLAIN SELECT * FROM titles WHERE left(emp_no, 3) = '100';
+```
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/7.png?raw=true)
+
+<br>
+
+### 索引选择性与前缀索引
+
+&emsp;&emsp;索引的建立需要消耗存储空间，且加重插入、删除和修改的负担。
+
+&emsp;&emsp;建立索引的建议：
+
+1. 大于 2000 条记录
+2. 索引的选择性较高，且索引长度适中
+
+> 索引选择性：
+>
+> Index Selectivity = Cardinality / #T
+>
+> 非重复数据数量 / 总记录数量
+
+<br>
+
+针对 employees 表，对 'last_name'、'first_name' 创建联合索引:
+
+first_name, last_name 后五位的求出的 Index Selectivity
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/8.5.png?raw=true)
+
+<br>
+
+first_name, last_name 后四位的求出的 Index Selectivity
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/8.97.png?raw=true)
+
+<br>
+
+first_name, last_name 后三位的求出的 Index Selectivity
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/8.3.png?raw=true)
+
+<br>
+
+last_name, first_name 联合索引长度 key_len = 94
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/8.94.png?raw=true)
+
+<br>
+
+权衡索引长度与 Index Selectivity， first_name 与 last_name 后4位最为合适。
+
+建立索引和无索引的性能测试：
+
+![](https://github.com/MMingLeung/Markdown-Picture/blob/master/mysql_pics/9.png?raw=true)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
