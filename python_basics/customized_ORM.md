@@ -12,6 +12,7 @@
 class Field(object):
     def __init__(self, name, col_type, required, field_type):
         '''
+        
         :param name: 列名
         :param col_type: 数据库中的类型
         :param required: 能否为空
@@ -59,6 +60,7 @@ class ModelMetaclass(type):
                 field_types[key] = value.field_type
                 if value.required:
                     requireds[key] = value
+        attrs['__table__'] = name
         attrs['__mappings__'] = mappings
         attrs['__requireds__'] = requireds
         attrs['__field_types__'] = field_types
@@ -105,6 +107,17 @@ class Model(dict, metaclass=ModelMetaclass):
     def __setattr__(self, key, value):
         self[key] = value
 
+    def save(self):
+        fields = []
+        params = []
+        args = []
+        for key, value in self.__mappings__.items():
+            fields.append(key)
+            params.append('?')
+            args.append(self[key])
+        sql = "INSERT INTO %s (%s) VALUES (%s)" % (self.__table__, ', '.join(fields), ', '.join(str(arg) for arg in args))
+        print('SQL: ', sql)
+        print('ARGS: ',args)
 
 
 class User(Model):
@@ -113,7 +126,7 @@ class User(Model):
 
 if __name__ == '__main__':
     u = User(name='Matt', age=15)
-    print(u['name'], u['age'])
+    u.save()
 ````
 
 
