@@ -365,66 +365,86 @@ IO多路复用：
    ​
 
 ````Python
-#!/usr/bin/env python
-# -*-coding:utf-8 -*-
-
 import socket
 import select
 
-class Request(sock):
-	def __init__(self, info):
-      	self.sock = sock
+class Request(object):
+    def __init__(self, sock, info):
+        self.sock = sock
         self.info = info
-   
-  	def fileno(self):
-      	return self.sock.fileno()
-  	
+
+    def fileno(self):
+        return self.sock.fileno()
+
+
 class Unsurpassed(object):
-  	def __init__(self):
-    	self.req_list = []
+    def __init__(self):
+        self.sock_list = []
         self.conns = []
-  	
+
     def add_request(self, req_info):
-      	for url in url_list:
-          	sock = socket.scoket()
-            try:
-            	sock.connect((url['host'], url['port']))
-            except BlockingIOError as e:
-                pass
-            obj = Request(sock, req_info)
-            self.req_list.append(obj)
-            self.conns.append(obj)
-      
+        '''
+        创建请求
+         {'host':'www.baidu.com', 'port':80, 'path':'/'}
+        :return: 
+        '''
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setblocking(False)
+        try:
+            sock.connect((req_info['host'],req_info['port']))
+        except BlockingIOError as e:
+            pass
+        obj = Request(sock, req_info)
+        self.sock_list.append(obj)
+        self.conns.append(obj)
+
     def run(self):
-      	r,w,e = select.select(self.req_list, self.conns, [], 0.05)
+        '''
+        开始事件循环
+        监测连接是否成功，数据是否返回
+        :return: 
+        '''
         while True:
-          	for obj in w:
-              	data = "GET %s \r\nhost:%s\r\n\r\n" % (obj.info.path, obj.info.host)
-                obj.sock.sendadd(data.encode('utf-8'))
-            	self.req_list.move(obj)
+            # select.select([socket对象／任意有fileno方法的方法(自己创建的Request对象)])
+            # 内部执行obj.fileno()
+            r,w,e = select.select(self.sock_list, self.conns, [], 0.05)
+            for obj in w:
+                # 检查obj 是否连接
+                # Request对象含有socket对象和字典所有信息
+                data = "GET %s http/1.1\r\nhost:%s\r\n\r\n" % (obj.info['path'], obj.info['host'])
+                obj.sock.send(data.encode('utf-8'))
+                self.conns.remove(obj) # 防止重复send数据
             for obj in r:
-              	data = obj.sock.recv(1024)
-                print(data)
-                obj.info['callback']()
-                self.conns.remove(obj)
-           	if not self.req_list:
-              	break
-                
-
-def done():
-  	print('callback')
-	return 
-  
-  
-    
-url_list = [{'host':'www.google.com', 'port':80, 'path':'/', 'callback':done},
-           	{'host': 'www.github.com', 'port':80, 'path':'/'}]
+                response = obj.sock.recv(8096)
+                # 回调
+                if obj.info.get('callback'):
+                    obj.info['callback'](response)
+                print(obj.info['host'],response)
+                self.sock_list.remove(obj)
+            # 所有请求已经返回
+            if not self.sock_list:
+                break
 
 
-obj = Unsurpassed()
-obj.add_request(url_list)
-obj.run
+def done(response):
+    '''
+    :param response: 
+    :return: 
+    '''
+    print('回调函数',response)
 
+
+
+url_list = [
+    {'host':'www.baidu.com', 'port':80, 'path':'/', 'callback':done},
+    {'host':'www.bing.com', 'port':80, 'path':'/'},
+    {'host':'www.zhihu.com', 'port':80, 'path':'/'},
+]
+
+uns = Unsurpassed()
+for item in url_list:
+    uns.add_request(item)
+uns.run()
 ````
 
 使用：
