@@ -362,7 +362,6 @@ IO多路复用：
 
 2. r : 代表数据可读，w：代表连接成功
 
-   ​
 
 ````Python
 import socket
@@ -405,7 +404,7 @@ class Unsurpassed(object):
         :return: 
         '''
         while True:
-            # select.select([socket对象／任意有fileno方法的方法(自己创建的Request对象)])
+            # select.select([socket对象／任意有fileno方法的对象])
             # 内部执行obj.fileno()
             r,w,e = select.select(self.sock_list, self.conns, [], 0.05)
             for obj in w:
